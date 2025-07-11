@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "勤怠入力ヘルパー",
+  "version": "1.0",
+  "description": "勤怠修正理由に自動入力とボタン追加",
+  "permissions": ["scripting"],
+  "content_scripts": [
+    {
+      "matches": ["https://kintai.jinjer.biz/staffs/time_cards"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
