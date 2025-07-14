@@ -23,12 +23,12 @@ setInterval(() => {
   }
 
   // 保存されたデータを画面に復元する関数
-  function restoreTempData() {
-    if (tempDataRestored) return; // 既に復元済みなら何もしない
-    chrome.storage.local.get([makeStorageKey()], (res) => {
-      const obj = res[makeStorageKey()];
-      if (obj) {
-        try {
+    function restoreTempData() {
+      if (tempDataRestored) return; // 既に復元済みなら何もしない
+      chrome.storage.local.get([makeStorageKey()], (res) => {
+        const obj = res[makeStorageKey()];
+        if (obj) {
+          try {
           // 🌟 保存したHTMLを丸ごと復元
           if (obj.hourWorkHtml) {
             const hourWork = document.querySelector(".hour-work");
@@ -68,6 +68,8 @@ setInterval(() => {
           }
           console.log("【復元完了】", obj);
           tempDataRestored = true;
+          // 復元したらもう使わないので消しておくよ
+          chrome.storage.local.remove(makeStorageKey());
         } catch (e) {
           console.error("復元エラー:", e);
         }
@@ -91,8 +93,8 @@ setInterval(() => {
     cancelApplyBtn.insertAdjacentElement("afterend", tempSaveBtn);
 
 
-    // 一時保存クリック時の処理
-    tempSaveBtn.addEventListener("click", () => {
+    // 入力したデータをしまっておく簡単な関数
+    function saveTempData(showAlert) {
       const workInputs = document.querySelectorAll(
         '.timecards_hidden_data input[type="number"]'
       );
@@ -116,10 +118,19 @@ setInterval(() => {
 
       // chrome.storage.local に保存
       chrome.storage.local.set({ [makeStorageKey()]: data }, () => {
-        // 🌟 ログ出力
-        console.log("【一時保存データ】", data);
-        alert("一時保存しました");
+        console.log("【一時保存データ】", data); // 保存内容を表示
+        if (showAlert) alert("一時保存しました");
       });
+    }
+
+    // 一時保存ボタンを押したとき
+    tempSaveBtn.addEventListener("click", () => {
+      saveTempData(true);
+    });
+
+    // 申請取消ボタンを押したときにも自動保存
+    cancelApplyBtn.addEventListener("click", () => {
+      saveTempData(false);
     });
 
   }
