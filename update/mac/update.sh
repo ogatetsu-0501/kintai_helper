@@ -26,7 +26,14 @@ echo "$COMMIT_DATE" > ../../last_update.txt
 # お掃除
 rm -rf "$TMP_DIR"
 
-# 更新が終わったらkintaiページを再表示するよ
+# 更新が終わったら拡張機能をリロードするよ
+# 拡張IDは固定なのでここに書いておくね
+EXT_ID="knjpjbmahfhomkmgefkcdiilbffeiilj"
+
+# まずリロード用のページを開く
+open "chrome-extension://${EXT_ID}/update/reload/reload.html"
+
+# それからkintaiページを再表示するよ
 # もし既に開いているタブがあれば再読み込みするよ
 osascript <<'EOF'
 tell application "Google Chrome"

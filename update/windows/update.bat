@@ -27,7 +27,12 @@ echo %CDATE%> ..\..\last_update.txt
 REM お掃除
 rd /s /q "%TMP_DIR%"
 
-REM 更新が終わったらkintaiページを再表示するよ
+
+REM 更新が終わったら拡張機能をリロードするよ
+set EXT_ID=knjpjbmahfhomkmgefkcdiilbffeiilj
+powershell -Command "Start-Process chrome 'chrome-extension://%EXT_ID%/update/reload/reload.html'"
+
+REM それからkintaiページを再表示するよ
 REM もし既に開いているタブがあれば再読み込みするよ
 powershell -Command ^
   "$url='https://kintai.jinjer.biz/staffs/time_cards';" ^
