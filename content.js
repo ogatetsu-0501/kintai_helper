@@ -49,12 +49,12 @@ setInterval(() => {
   }
 
   // 保存されたデータを画面に復元する関数
-    function restoreTempData() {
-      if (tempDataRestored) return; // 既に復元済みなら何もしない
-      chrome.storage.local.get([makeStorageKey()], (res) => {
-        const obj = res[makeStorageKey()];
-        if (obj) {
-          try {
+  function restoreTempData() {
+    if (tempDataRestored) return; // 既に復元済みなら何もしない
+    chrome.storage.local.get([makeStorageKey()], (res) => {
+      const obj = res[makeStorageKey()];
+      if (obj) {
+        try {
           // 🌟 保存したHTMLを丸ごと復元
           if (obj.hourWorkHtml) {
             const hourWork = document.querySelector(".hour-work");
@@ -118,7 +118,6 @@ setInterval(() => {
     tempSaveBtn.style.cursor = "pointer";
     cancelApplyBtn.insertAdjacentElement("afterend", tempSaveBtn);
 
-
     // 入力したデータをしまっておく簡単な関数
     function saveTempData(showAlert) {
       const workInputs = document.querySelectorAll(
@@ -158,7 +157,6 @@ setInterval(() => {
     cancelApplyBtn.addEventListener("click", () => {
       saveTempData(false);
     });
-
   }
 
   // ■ 勤怠実績UI の表示判定
@@ -178,7 +176,6 @@ setInterval(() => {
     tempDataRestored = false; // 復元フラグをリセット
     return;
   }
-
 
   // 2. 勤怠実績UI の初回描画
   if (!previousVisible) {
@@ -492,7 +489,7 @@ setInterval(() => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "config.json";
+      a.download = "default_config.json";
       a.click();
       URL.revokeObjectURL(url);
     });
