@@ -26,18 +26,16 @@ echo "$COMMIT_DATE" > ../../last_update.txt
 # お掃除
 rm -rf "$TMP_DIR"
 
-# 更新が終わったらkintaiページを開いて拡張をリロードするよ
+# 更新が終わったらkintaiページを再表示するよ
 # もし既に開いているタブがあれば再読み込みするよ
 osascript <<'EOF'
 tell application "Google Chrome"
-  set targetUrl to "https://kintai.jinjer.biz/staffs/time_cards?reload_extension=1"
-  set baseUrl to "https://kintai.jinjer.biz/staffs/time_cards"
+  set targetUrl to "https://kintai.jinjer.biz/staffs/time_cards"
   set found to false
   repeat with w in every window
     repeat with t in every tab of w
-      if URL of t starts with baseUrl then
+      if URL of t starts with targetUrl then
         set found to true
-        set URL of t to targetUrl
         reload t
         exit repeat
       end if

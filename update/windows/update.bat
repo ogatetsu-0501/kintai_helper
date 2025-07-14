@@ -27,8 +27,13 @@ echo %CDATE%> ..\..\last_update.txt
 REM お掃除
 rd /s /q "%TMP_DIR%"
 
-REM 更新が終わったらkintaiページを開いて拡張をリロードするよ
-start "" "https://kintai.jinjer.biz/staffs/time_cards?reload_extension=1"
+REM 更新が終わったらkintaiページを再表示するよ
+REM もし既に開いているタブがあれば再読み込みするよ
+powershell -Command ^
+  "$url='https://kintai.jinjer.biz/staffs/time_cards';" ^
+  "$ws=New-Object -ComObject WScript.Shell;" ^
+  "$chrome=(Get-Process chrome -ErrorAction SilentlyContinue | Select-Object -First 1);" ^
+  "if($chrome){$ws.AppActivate($chrome.Id)|Out-Null;$ws.SendKeys('^l');$ws.SendKeys($url);$ws.SendKeys('{ENTER}');}else{Start-Process chrome $url}"
 
 echo 更新が終わりました。ブラウザが自動で再読み込みされます。
 pause
