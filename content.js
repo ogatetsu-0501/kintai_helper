@@ -28,6 +28,16 @@ setInterval(() => {
       const obj = res[makeStorageKey()];
       if (obj) {
         try {
+          // 🌟 保存したHTMLを丸ごと復元
+          if (obj.hourWorkHtml) {
+            const hourWork = document.querySelector(".hour-work");
+            if (hourWork) {
+              hourWork.outerHTML = obj.hourWorkHtml;
+            }
+            console.log("【復元HTML】", obj.hourWorkHtml);
+          }
+
+          // 入力欄へ保存した値を入れる
           const workInputs = document.querySelectorAll(
             '.timecards_hidden_data input[type="number"]'
           );
@@ -46,6 +56,7 @@ setInterval(() => {
           if (textarea && !textarea.disabled) {
             textarea.value = obj.reason;
           }
+          console.log("【復元完了】", obj);
           tempDataRestored = true;
         } catch (e) {
           console.error("復元エラー:", e);
@@ -82,12 +93,15 @@ setInterval(() => {
       const breakValues = Array.from(breakInputs).map((i) => i.value);
       const textarea = document.getElementById("update_reason");
       const reasonText = textarea ? textarea.value : "";
+      const hourWork = document.querySelector(".hour-work");
+      const hourWorkHtml = hourWork ? hourWork.outerHTML : "";
 
       // 保存するデータオブジェクト
       const data = {
         work: workValues, // 勤務時間
         break: breakValues, // 休憩時間
         reason: reasonText, // 理由テキスト
+        hourWorkHtml: hourWorkHtml, // hour-work 全体
       };
 
       // chrome.storage.local に保存
@@ -98,8 +112,6 @@ setInterval(() => {
       });
     });
 
-    // ページ初回表示時に復元
-    restoreTempData();
   }
 
   // ■ 勤怠実績UI の表示判定
@@ -120,8 +132,6 @@ setInterval(() => {
     return;
   }
 
-  // ■ 編集可能なら保存データを復元
-  restoreTempData();
 
   // 2. 勤怠実績UI の初回描画
   if (!previousVisible) {
@@ -153,6 +163,8 @@ setInterval(() => {
 
     // 初期文字
     textarea.value = "勤務実績";
+    // 初期値入力後に一時保存データを復元
+    restoreTempData();
 
     // ────────────────
     // 2-2. DOMコンテナ
