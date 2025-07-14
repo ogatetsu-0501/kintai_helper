@@ -25,8 +25,7 @@ function showToast(msg) {
 
 // ★ 更新方法を知らせる通知を作る関数
 function showUpdateNotice(folder, script) {
-  // フルパスを作るよ
-  const scriptPath = chrome.runtime.getURL(`update/${folder}/${script}`);
+  // 表示用の入れ物を作るよ
   const box = document.createElement("div");
   box.id = "kintai-update-notice";
   box.style.position = "fixed";
@@ -37,17 +36,9 @@ function showUpdateNotice(folder, script) {
   box.style.border = "1px solid #000";
   box.style.padding = "10px";
   box.style.fontSize = "14px";
-  box.textContent = `新しいバージョンがあります。拡張機能内update/${folder} フォルダの ${script} を実行してください。実行後、自動で更新されます。`;
-  const btn = document.createElement("button");
-  btn.textContent = "パスをコピー";
-  btn.style.marginLeft = "8px";
-  btn.addEventListener("click", () => {
-    navigator.clipboard.writeText(scriptPath).then(() => {
-      showToast("コピーしました！");
-    });
-  });
-  box.appendChild(document.createElement("br"));
-  box.appendChild(btn);
+  // ここで実行してほしいファイルのパスを教えるよ
+  box.textContent = `拡張機能が更新されています。kintai_helper\\update\\${folder}\\${script} をダブルクリックで実行して下さい`;
+  // そのまま画面に出すだけでOK
   document.body.appendChild(box);
 }
 
