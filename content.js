@@ -254,9 +254,18 @@ setInterval(() => {
     // 2-5. テキスト更新
     // ────────────────
     function updateTextarea() {
+      // 最初の行はいつも固定で書くよ
       let text = "勤務実績";
+
+      // 仕事の種類を選んだら2行目に書くよ
       if (selectedWorkType) text += `\n${selectedWorkType}`;
-      if (selectedReasons.length) text += `\n${selectedReasons.join(",")}`;
+
+      // 理由が1つ以上あるときだけ3行目に「理由:」を付けて書くよ
+      if (selectedReasons.length) {
+        text += `\n理由:${selectedReasons.join(",")}`;
+      }
+
+      // 作った文章をテキストエリアに入れるよ
       textarea.value = text;
     }
 
