@@ -28,7 +28,7 @@ rm -rf "$TMP_DIR"
 
 # 更新が終わったら拡張機能をリロードするよ
 # 拡張IDは固定なのでここに書いておくね
-EXT_ID="knjpjbmahfhomkmgefkcdiilbffeiilj"
+EXT_ID="nollgfekjjnomghpmdibaaginljdpgja"
 
 # まずリロード用のページを開く
 open "chrome-extension://${EXT_ID}/update/reload/reload.html"
