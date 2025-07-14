@@ -247,13 +247,10 @@ setInterval(() => {
 
   // ■ 勤怠実績UI の表示判定
   const textarea = document.getElementById("update_reason");
-  const targetDiv = document.evaluate(
-    "/html/body/div[7]/div/div[2]/div[3]/div[3]",
-    document,
-    null,
-    XPathResult.FIRST_ORDERED_NODE_TYPE,
-    null
-  ).singleNodeValue;
+  // 理由欄全体の箱をクラス名で探すよ
+  const targetDiv = document.querySelector(
+    "div.rightContent.staff_time_cards_month"
+  );
   const isVisible = textarea && targetDiv && targetDiv.offsetParent !== null;
 
   // ■ 非表示 or disabled ならUIをリセットして終了
