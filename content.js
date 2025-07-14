@@ -6,6 +6,32 @@ let tempSaveInitialized = false; // 一時保存ボタンが追加済みか
 let tempDataRestored = false; // 一時保存データを復元したかどうか
 let restoredReason = ""; // 復元した理由テキスト
 
+// 初期ボタン設定を入れておく箱を用意するよ
+let defaultConfig = {
+  workTypes: ["残業", "早出", "早出残業"],
+  reasons: [
+    "通常業務",
+    "交換作業",
+    "版出し",
+    "製版予定調整",
+    "青焼",
+    "第三者校正",
+    "変換",
+    "トラブル対応",
+    "その他",
+  ],
+};
+
+// 拡張に同梱された JSON から本当の初期設定を読み込むよ
+fetch(chrome.runtime.getURL("default_config.json"))
+  .then((r) => r.json())
+  .then((data) => {
+    defaultConfig = data;
+  })
+  .catch(() => {
+    // 読み込み失敗時は上の初期値のままにするよ
+  });
+
 // 1. 500msごとに監視
 setInterval(() => {
   // ■ 「申請取消」ボタン＆ユーザー名＆日付テキストを探す（常に実行）
@@ -161,18 +187,9 @@ setInterval(() => {
     // ────────────────
     // 2-1. リスト & 状態変数
     // ────────────────
-    const defaultWorkTypes = ["残業", "早出", "早出残業"];
-    const defaultReasons = [
-      "通常業務",
-      "交換作業",
-      "版出し",
-      "製版予定調整",
-      "青焼",
-      "第三者校正",
-      "変換",
-      "トラブル対応",
-      "その他",
-    ];
+    // JSON から読んだ初期値をここで使うよ
+    const defaultWorkTypes = [...defaultConfig.workTypes];
+    const defaultReasons = [...defaultConfig.reasons];
     let tempWorkTypes = [];
     let tempReasons = [];
     let selectedWorkType = "";
@@ -240,6 +257,15 @@ setInterval(() => {
     cancelBtn.style.cursor = "pointer";
     cancelBtn.style.display = "none";
 
+    // 設定をダウンロードするボタンも作るよ
+    const exportBtn = document.createElement("button");
+    exportBtn.textContent = "設定保存";
+    exportBtn.style.padding = "6px 12px";
+    exportBtn.style.background = "#007bff";
+    exportBtn.style.color = "#fff";
+    exportBtn.style.border = "none";
+    exportBtn.style.cursor = "pointer";
+
     // ────────────────
     // 2-4. 下部中央に確定/キャンセルグループ
     // ────────────────
@@ -248,7 +274,7 @@ setInterval(() => {
     actionGroup.style.justifyContent = "center";
     actionGroup.style.gap = "10px";
     actionGroup.style.marginTop = "auto";
-    actionGroup.append(saveBtn, cancelBtn);
+    actionGroup.append(saveBtn, cancelBtn, exportBtn);
 
     // ────────────────
     // 2-5. テキスト更新
@@ -452,6 +478,23 @@ setInterval(() => {
       loadAndRender(() => {
         reasonWrapper.style.display = preReasonVisible ? "flex" : "none";
       });
+    });
+
+    // 現在の設定を JSON にしてダウンロードするよ
+    exportBtn.addEventListener("click", () => {
+      const data = {
+        workTypes: tempWorkTypes,
+        reasons: tempReasons,
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "config.json";
+      a.click();
+      URL.revokeObjectURL(url);
     });
 
     // ────────────────
