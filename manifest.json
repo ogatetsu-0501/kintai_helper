@@ -4,7 +4,13 @@
   "version": "1.0",
   "description": "残業・理由ボタンを自動表示・編集可能にする拡張",
   "permissions": ["storage"],
-  "host_permissions": ["https://kintai.jinjer.biz/*"],
+  "host_permissions": [
+    "https://kintai.jinjer.biz/*",
+    "https://raw.githubusercontent.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://kintai.jinjer.biz/staffs/time_cards"],
