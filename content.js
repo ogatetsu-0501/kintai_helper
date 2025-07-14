@@ -37,7 +37,7 @@ function showUpdateNotice(folder, script) {
   box.style.border = "1px solid #000";
   box.style.padding = "10px";
   box.style.fontSize = "14px";
-  box.textContent = `新しいバージョンがあります。拡張機能内update/${folder} フォルダの ${script} を実行してください。`;
+  box.textContent = `新しいバージョンがあります。拡張機能内update/${folder} フォルダの ${script} を実行してください。実行後、自動で更新されます。`;
   const btn = document.createElement("button");
   btn.textContent = "パスをコピー";
   btn.style.marginLeft = "8px";

@@ -28,7 +28,7 @@ Chrome 拡張として動作し、[jinjer勤怠](https://kintai.jinjer.biz/) で
    `update` フォルダ内のスクリプトを実行します。
 2. Windows の場合は `update/windows/update.bat`、Mac の場合は
    `update/mac/update.sh` を実行してください。
-3. 更新後はブラウザが自動で再読み込みされます。
+3. スクリプトが拡張機能をリロードし、開いている勤怠画面も自動で再読み込みされます。
 
 ## 設定変更
 
