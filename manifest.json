@@ -11,5 +11,11 @@
       "js": ["content.js"],
       "run_at": "document_idle"
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["default_config.json"],
+      "matches": ["https://kintai.jinjer.biz/*"]
+    }
   ]
 }
