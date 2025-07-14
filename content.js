@@ -48,17 +48,21 @@ setInterval(() => {
           // 🌟 保存したHTMLを丸ごと復元
           if (obj.hourWorkHtml) {
             const hourWork = document.querySelector(".hour-work");
-            if (hourWork) {
-              hourWork.outerHTML = obj.hourWorkHtml;
-              // 復元した要素の入力欄を使えるようにする
-              const newHourWork = document.querySelector(".hour-work");
-              if (newHourWork) {
-                newHourWork.querySelectorAll("input").forEach((inp) => {
-                  inp.disabled = false;
-                });
-              }
+          if (hourWork) {
+            hourWork.outerHTML = obj.hourWorkHtml;
+            // 復元した要素の入力欄を使えるようにする
+            const newHourWork = document.querySelector(".hour-work");
+            if (newHourWork) {
+              newHourWork.querySelectorAll("input").forEach((inp) => {
+                inp.disabled = false;
+              });
+              // セレクトも使えるようにするよ
+              newHourWork.querySelectorAll("select").forEach((sel) => {
+                sel.disabled = false;
+              });
             }
           }
+        }
 
           // 入力欄へ保存した値を入れる
           const workInputs = document.querySelectorAll(
@@ -74,6 +78,21 @@ setInterval(() => {
           obj.break.forEach((v, i) => {
             if (breakInputs[i]) breakInputs[i].value = v;
           });
+
+          // セレクトのHTMLと値を戻すよ
+          if (obj.shiftHtml) {
+            const selOrg = document.getElementById(
+              "shift_template_collection_for_timecard_cf"
+            );
+            if (selOrg) selOrg.outerHTML = obj.shiftHtml;
+          }
+          const selNew = document.getElementById(
+            "shift_template_collection_for_timecard_cf"
+          );
+          if (selNew) {
+            selNew.disabled = false;
+            selNew.value = obj.shiftValue || "";
+          }
 
           // 理由テキストは後で上書きするため保持しておく
           restoredReason = obj.reason || "";
@@ -109,6 +128,12 @@ setInterval(() => {
       const reasonText = textarea ? textarea.value : "";
       const hourWork = document.querySelector(".hour-work");
       const hourWorkHtml = hourWork ? hourWork.outerHTML : "";
+      // シフトテンプレートのセレクトを見つけておくよ
+      const shiftSel = document.getElementById(
+        "shift_template_collection_for_timecard_cf"
+      );
+      const shiftValue = shiftSel ? shiftSel.value : "";
+      const shiftHtml = shiftSel ? shiftSel.outerHTML : "";
 
       // 保存するデータオブジェクト
       const data = {
@@ -116,6 +141,8 @@ setInterval(() => {
         break: breakValues, // 休憩時間
         reason: reasonText, // 理由テキスト
         hourWorkHtml: hourWorkHtml, // hour-work 全体
+        shiftHtml: shiftHtml, // セレクトのHTML
+        shiftValue: shiftValue, // セレクトの値
       };
 
       // chrome.storage.local に保存
@@ -130,6 +157,10 @@ setInterval(() => {
       saveTempData(false);
     });
   }
+
+  // ■ 勤怠実績UI の表示判定
+  const textarea = document.getElementById("update_reason");
+  const targetDiv = document.evaluate(
     "/html/body/div[7]/div/div[2]/div[3]/div[3]",
     document,
     null,
@@ -267,6 +298,7 @@ setInterval(() => {
     function renderButtons(list, container, type) {
       container.innerHTML = "";
       list.forEach((name, idx) => {
+        const index = idx; // 並び順を覚えておく
         const btn = document.createElement("button");
         btn.textContent = name;
         btn.style.padding = "6px 10px";
@@ -275,6 +307,23 @@ setInterval(() => {
         btn.style.position = "relative";
 
         if (editMode) {
+          // ドラッグで動かせるようにする
+          btn.draggable = true;
+          btn.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("index", index);
+          });
+          btn.addEventListener("dragover", (e) => {
+            e.preventDefault();
+          });
+          btn.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const from = parseInt(e.dataTransfer.getData("index"));
+            if (!isNaN(from) && from !== index) {
+              const moved = list.splice(from, 1)[0];
+              list.splice(index, 0, moved);
+              renderAll();
+            }
+          });
           const del = document.createElement("span");
           del.textContent = "×";
           del.style.color = "red";
