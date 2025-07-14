@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "勤怠入力ヘルパー",
+  "name": "勤務実績補助拡張",
   "version": "1.0",
-  "description": "勤怠修正理由に自動入力とボタン追加",
-  "permissions": ["scripting"],
+  "description": "残業・理由ボタンを自動表示・編集可能にする拡張",
+  "permissions": ["storage"],
+  "host_permissions": ["https://kintai.jinjer.biz/*"],
   "content_scripts": [
     {
       "matches": ["https://kintai.jinjer.biz/staffs/time_cards"],
