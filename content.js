@@ -6,21 +6,6 @@ const commitApiUrl =
   "https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main";
 const localUpdateUrl = chrome.runtime.getURL("last_update.txt");
 
-// == 更新後の自動リロード ==
-// URLに?reload_extension=1 がついていたら拡張をリロードするよ
-const params = new URLSearchParams(location.search);
-if (params.get("reload_extension") === "1") {
-  // サービスワーカーにメッセージを送ってリロードしてもらう
-  chrome.runtime.sendMessage("reload_extension", () => {
-    // 少し待ってからページを再読み込み
-    params.delete("reload_extension");
-    const url = location.pathname + (params.toString() ? "?" + params.toString() : "");
-    setTimeout(() => {
-      location.replace(url);
-    }, 500);
-  });
-}
-
 // ★ トーストを表示するかんたんな関数
 function showToast(msg) {
   // ちいさなメッセージ箱を作るよ
