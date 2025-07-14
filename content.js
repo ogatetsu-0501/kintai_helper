@@ -3,6 +3,7 @@
 // 0. 初期フラグ
 let previousVisible = false; // 勤怠実績UIが描画済みか
 let tempSaveInitialized = false; // 一時保存ボタンが追加済みか
+let tempDataRestored = false; // 一時保存データを復元したかどうか
 
 // 1. 500msごとに監視
 setInterval(() => {
@@ -12,6 +13,46 @@ setInterval(() => {
   );
   const nameP = document.querySelector("a.dropdown-toggle.username p");
   const dateSpan = document.querySelector("div.floatLeft.jdate span");
+
+  // 保存キーを作る関数を定義
+  function makeStorageKey() {
+    const name = nameP ? nameP.textContent.trim() : "";
+    const date = dateSpan ? dateSpan.textContent.trim() : "";
+    return `tempSave:${name}|${date}`;
+  }
+
+  // 保存されたデータを画面に復元する関数
+  function restoreTempData() {
+    if (tempDataRestored) return; // 既に復元済みなら何もしない
+    chrome.storage.local.get([makeStorageKey()], (res) => {
+      const obj = res[makeStorageKey()];
+      if (obj) {
+        try {
+          const workInputs = document.querySelectorAll(
+            '.timecards_hidden_data input[type="number"]'
+          );
+          obj.work.forEach((v, i) => {
+            if (workInputs[i]) workInputs[i].value = v;
+          });
+
+          const breakInputs = document.querySelectorAll(
+            '.break-times-data input[type="number"]'
+          );
+          obj.break.forEach((v, i) => {
+            if (breakInputs[i]) breakInputs[i].value = v;
+          });
+
+          const textarea = document.getElementById("update_reason");
+          if (textarea && !textarea.disabled) {
+            textarea.value = obj.reason;
+          }
+          tempDataRestored = true;
+        } catch (e) {
+          console.error("復元エラー:", e);
+        }
+      }
+    });
+  }
 
   // ■ 一時保存ボタンが未追加かつ要素が揃ったら追加
   if (!tempSaveInitialized && cancelApplyBtn && nameP && dateSpan) {
@@ -28,12 +69,6 @@ setInterval(() => {
     tempSaveBtn.style.cursor = "pointer";
     cancelApplyBtn.insertAdjacentElement("afterend", tempSaveBtn);
 
-    // 保存キーを作る
-    function makeStorageKey() {
-      const name = nameP.textContent.trim();
-      const date = dateSpan.textContent.trim();
-      return `tempSave:${name}|${date}`;
-    }
 
     // 一時保存クリック時の処理
     tempSaveBtn.addEventListener("click", () => {
@@ -55,43 +90,16 @@ setInterval(() => {
         reason: reasonText, // 理由テキスト
       };
 
-      // localStorageに保存
-      localStorage.setItem(makeStorageKey(), JSON.stringify(data));
-
-      // 🌟 ログ出力
-      console.log("【一時保存データ】", data);
-
-      alert("一時保存しました");
+      // chrome.storage.local に保存
+      chrome.storage.local.set({ [makeStorageKey()]: data }, () => {
+        // 🌟 ログ出力
+        console.log("【一時保存データ】", data);
+        alert("一時保存しました");
+      });
     });
 
     // ページ初回表示時に復元
-    const saved = localStorage.getItem(makeStorageKey());
-    if (saved) {
-      try {
-        const obj = JSON.parse(saved);
-
-        const workInputs = document.querySelectorAll(
-          '.timecards_hidden_data input[type="number"]'
-        );
-        obj.work.forEach((v, i) => {
-          if (workInputs[i]) workInputs[i].value = v;
-        });
-
-        const breakInputs = document.querySelectorAll(
-          '.break-times-data input[type="number"]'
-        );
-        obj.break.forEach((v, i) => {
-          if (breakInputs[i]) breakInputs[i].value = v;
-        });
-
-        const textarea = document.getElementById("update_reason");
-        if (textarea && !textarea.disabled) {
-          textarea.value = obj.reason;
-        }
-      } catch (e) {
-        console.error("復元エラー:", e);
-      }
-    }
+    restoreTempData();
   }
 
   // ■ 勤怠実績UI の表示判定
@@ -108,8 +116,12 @@ setInterval(() => {
   // ■ 非表示 or disabled ならUIをリセットして終了
   if (!isVisible || textarea.disabled) {
     previousVisible = false;
+    tempDataRestored = false; // 復元フラグをリセット
     return;
   }
+
+  // ■ 編集可能なら保存データを復元
+  restoreTempData();
 
   // 2. 勤怠実績UI の初回描画
   if (!previousVisible) {
@@ -342,7 +354,7 @@ setInterval(() => {
     }
 
     // ────────────────
-    // 2-8. localStorageから読み込み＆初回描画
+    // 2-8. chrome.storage.localから読み込み＆初回描画
     // ────────────────
     function loadAndRender(callback) {
       chrome.storage.local.get(["workTypes", "reasons"], (data) => {
