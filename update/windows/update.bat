@@ -29,7 +29,7 @@ rd /s /q "%TMP_DIR%"
 
 
 REM 更新が終わったら拡張機能をリロードするよ
-set EXT_ID=knjpjbmahfhomkmgefkcdiilbffeiilj
+set EXT_ID=nollgfekjjnomghpmdibaaginljdpgja
 powershell -Command "Start-Process chrome 'chrome-extension://%EXT_ID%/update/reload/reload.html'"
 
 REM それからkintaiページを再表示するよ
