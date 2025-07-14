@@ -2,10 +2,9 @@
 
 // 0. 初期フラグ
 let previousVisible = false; // 勤怠実績UIが描画済みか
-let tempSaveInitialized = false; // 一時保存ボタンが追加済みか
+let tempSaveInitialized = false; // 一時保存処理を設定したか
 let tempDataRestored = false; // 一時保存データを復元したかどうか
 let restoredReason = ""; // 復元した理由テキスト
-
 // 初期ボタン設定を入れておく箱を用意するよ
 let defaultConfig = {
   workTypes: ["残業", "早出", "早出残業"],
@@ -22,15 +21,6 @@ let defaultConfig = {
   ],
 };
 
-// 拡張に同梱された JSON から本当の初期設定を読み込むよ
-fetch(chrome.runtime.getURL("default_config.json"))
-  .then((r) => r.json())
-  .then((data) => {
-    defaultConfig = data;
-  })
-  .catch(() => {
-    // 読み込み失敗時は上の初期値のままにするよ
-  });
 
 // 1. 500msごとに監視
 setInterval(() => {
@@ -68,7 +58,6 @@ setInterval(() => {
                 });
               }
             }
-            console.log("【復元HTML】", obj.hourWorkHtml);
           }
 
           // 入力欄へ保存した値を入れる
@@ -92,31 +81,19 @@ setInterval(() => {
           if (textarea && !textarea.disabled) {
             textarea.value = obj.reason;
           }
-          console.log("【復元完了】", obj);
           tempDataRestored = true;
           // 復元したらもう使わないので消しておくよ
           chrome.storage.local.remove(makeStorageKey());
         } catch (e) {
-          console.error("復元エラー:", e);
         }
       }
     });
   }
 
-  // ■ 一時保存ボタンが未追加かつ要素が揃ったら追加
+  // ■ 一時保存の処理を一度だけ設定
   if (!tempSaveInitialized && cancelApplyBtn && nameP && dateSpan) {
     tempSaveInitialized = true;
 
-    // 一時保存ボタンを作成
-    const tempSaveBtn = document.createElement("button");
-    tempSaveBtn.textContent = "一時保存";
-    tempSaveBtn.style.marginLeft = "8px";
-    tempSaveBtn.style.padding = "6px 12px";
-    tempSaveBtn.style.background = "#ff9800";
-    tempSaveBtn.style.color = "#fff";
-    tempSaveBtn.style.border = "none";
-    tempSaveBtn.style.cursor = "pointer";
-    cancelApplyBtn.insertAdjacentElement("afterend", tempSaveBtn);
 
     // 入力したデータをしまっておく簡単な関数
     function saveTempData(showAlert) {
@@ -143,25 +120,16 @@ setInterval(() => {
 
       // chrome.storage.local に保存
       chrome.storage.local.set({ [makeStorageKey()]: data }, () => {
-        console.log("【一時保存データ】", data); // 保存内容を表示
         if (showAlert) alert("一時保存しました");
       });
     }
 
-    // 一時保存ボタンを押したとき
-    tempSaveBtn.addEventListener("click", () => {
-      saveTempData(true);
-    });
 
     // 申請取消ボタンを押したときにも自動保存
     cancelApplyBtn.addEventListener("click", () => {
       saveTempData(false);
     });
   }
-
-  // ■ 勤怠実績UI の表示判定
-  const textarea = document.getElementById("update_reason");
-  const targetDiv = document.evaluate(
     "/html/body/div[7]/div/div[2]/div[3]/div[3]",
     document,
     null,
@@ -256,12 +224,13 @@ setInterval(() => {
 
     // 設定をダウンロードするボタンも作るよ
     const exportBtn = document.createElement("button");
-    exportBtn.textContent = "設定保存";
+    exportBtn.textContent = "設定ダウンロード";
     exportBtn.style.padding = "6px 12px";
     exportBtn.style.background = "#007bff";
     exportBtn.style.color = "#fff";
     exportBtn.style.border = "none";
     exportBtn.style.cursor = "pointer";
+    exportBtn.style.display = "inline-block";
 
     // ────────────────
     // 2-4. 下部中央に確定/キャンセルグループ
@@ -403,13 +372,16 @@ setInterval(() => {
     // 2-7. 全要素再描画
     // ────────────────
     function renderAll() {
+        // 編集モードかどうかでボタンを出し分けるよ
       if (editMode) {
         editBtn.style.display = "none";
         saveBtn.style.display = "inline-block";
+        exportBtn.style.display = "none";
         cancelBtn.style.display = "inline-block";
       } else {
         editBtn.style.display = "inline-block";
         saveBtn.style.display = "none";
+        exportBtn.style.display = "inline-block";
         cancelBtn.style.display = "none";
       }
       renderButtons(tempWorkTypes, workTypeWrapper, "work");
