@@ -4,6 +4,7 @@
 let previousVisible = false; // 勤怠実績UIが描画済みか
 let tempSaveInitialized = false; // 一時保存ボタンが追加済みか
 let tempDataRestored = false; // 一時保存データを復元したかどうか
+let restoredReason = ""; // 復元した理由テキスト
 
 // 1. 500msごとに監視
 setInterval(() => {
@@ -33,6 +34,13 @@ setInterval(() => {
             const hourWork = document.querySelector(".hour-work");
             if (hourWork) {
               hourWork.outerHTML = obj.hourWorkHtml;
+              // 復元した要素の入力欄を使えるようにする
+              const newHourWork = document.querySelector(".hour-work");
+              if (newHourWork) {
+                newHourWork.querySelectorAll("input").forEach((inp) => {
+                  inp.disabled = false;
+                });
+              }
             }
             console.log("【復元HTML】", obj.hourWorkHtml);
           }
@@ -52,6 +60,8 @@ setInterval(() => {
             if (breakInputs[i]) breakInputs[i].value = v;
           });
 
+          // 理由テキストは後で上書きするため保持しておく
+          restoredReason = obj.reason || "";
           const textarea = document.getElementById("update_reason");
           if (textarea && !textarea.disabled) {
             textarea.value = obj.reason;
@@ -429,6 +439,10 @@ setInterval(() => {
     // ────────────────
     wrapper.append(editBtn, workTypeWrapper, reasonWrapper, actionGroup);
     textarea.parentElement.appendChild(wrapper);
-    loadAndRender();
+    loadAndRender(() => {
+      if (tempDataRestored && restoredReason) {
+        textarea.value = restoredReason;
+      }
+    });
   }
 }, 500);
