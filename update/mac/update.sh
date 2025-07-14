@@ -19,6 +19,10 @@ rm -f "$TMP_DIR/$REPO_NAME-main/default_config.json"
 # 展開したファイルを上書きコピー
 cp -R "$TMP_DIR/$REPO_NAME-main"/* ../../
 
+# 最新コミット日時を取得して保存するよ
+COMMIT_DATE=$(curl -s "https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main" | grep -m 1 '"date"' | sed -E 's/.*"date": "([^"]+)".*/\1/')
+echo "$COMMIT_DATE" > ../../last_update.txt
+
 # お掃除
 rm -rf "$TMP_DIR"
 

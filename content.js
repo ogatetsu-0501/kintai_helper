@@ -1,10 +1,10 @@
 // == content.js ==
 
-// == バージョンチェック ==
-// Github上のmanifest.jsonを読んでバージョンを比べるよ
-// Githubに置いてあるmanifest.jsonのURLを指定するよ
-const remoteManifestUrl =
-  "https://raw.githubusercontent.com/ogatetsu-0501/kintai_helper/main/manifest.json";
+// == 更新チェック ==
+// Githubの最新コミット日時と手元の更新日時を比べるよ
+const commitApiUrl =
+  "https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main";
+const localUpdateUrl = chrome.runtime.getURL("last_update.txt");
 
 // == 更新後の自動リロード ==
 // URLに?reload_extension=1 がついていたら拡張をリロードするよ
@@ -41,7 +41,7 @@ function showToast(msg) {
 // ★ 更新方法を知らせる通知を作る関数
 function showUpdateNotice(folder, script) {
   // フルパスを作るよ
-  const path = chrome.runtime.getURL(`update/${folder}`);
+  const scriptPath = chrome.runtime.getURL(`update/${folder}/${script}`);
   const box = document.createElement("div");
   box.id = "kintai-update-notice";
   box.style.position = "fixed";
@@ -52,12 +52,12 @@ function showUpdateNotice(folder, script) {
   box.style.border = "1px solid #000";
   box.style.padding = "10px";
   box.style.fontSize = "14px";
-  box.textContent = `新しいバージョンがあります。${path} フォルダの ${script} を実行してください。`;
+  box.textContent = `新しいバージョンがあります。拡張機能内update/${folder} フォルダの ${script} を実行してください。`;
   const btn = document.createElement("button");
   btn.textContent = "パスをコピー";
   btn.style.marginLeft = "8px";
   btn.addEventListener("click", () => {
-    navigator.clipboard.writeText(path).then(() => {
+    navigator.clipboard.writeText(scriptPath).then(() => {
       showToast("コピーしました！");
     });
   });
@@ -66,13 +66,15 @@ function showUpdateNotice(folder, script) {
   document.body.appendChild(box);
 }
 
-fetch(remoteManifestUrl)
-  .then((r) => r.json())
-  .then((remote) => {
-    // 自分のバージョンを取得
-    const localVersion = chrome.runtime.getManifest().version;
-    // 違っていたら更新方法を知らせる
-    if (remote.version && remote.version !== localVersion) {
+Promise.all([
+  fetch(localUpdateUrl).then((r) => r.text()).catch(() => ""),
+  fetch(commitApiUrl).then((r) => r.json()).catch(() => null),
+])
+  .then(([localText, remote]) => {
+    if (!remote) return;
+    const localTime = Date.parse(localText.trim());
+    const remoteTime = Date.parse(remote.commit.committer.date);
+    if (isNaN(localTime) || remoteTime > localTime) {
       const isWin = navigator.userAgent.includes("Windows");
       const folder = isWin ? "windows" : "mac";
       const script = isWin ? "update.bat" : "update.sh";
@@ -80,8 +82,8 @@ fetch(remoteManifestUrl)
       showUpdateNotice(folder, script);
     }
   })
-  .catch((e) => console.error("バージョンチェックに失敗しました", e));
-// == バージョンチェックここまで ==
+  .catch((e) => console.error("更新チェックに失敗しました", e));
+// == 更新チェックここまで ==
 
 // 0. 初期フラグ
 let previousVisible = false; // 勤怠実績UIが描画済みか
