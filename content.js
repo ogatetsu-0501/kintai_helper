@@ -5,21 +5,20 @@ let previousVisible = false; // 勤怠実績UIが描画済みか
 let tempSaveInitialized = false; // 一時保存処理を設定したか
 let tempDataRestored = false; // 一時保存データを復元したかどうか
 let restoredReason = ""; // 復元した理由テキスト
-// 初期ボタン設定を入れておく箱を用意するよ
-let defaultConfig = {
-  workTypes: ["残業", "早出", "早出残業"],
-  reasons: [
-    "通常業務",
-    "交換作業",
-    "版出し",
-    "製版予定調整",
-    "青焼",
-    "第三者校正",
-    "変換",
-    "トラブル対応",
-    "その他",
-  ],
-};
+// 初期ボタンの設定を入れる箱をつくるよ
+let defaultConfig = { workTypes: [], reasons: [] };
+
+// default_config.json から設定を読みこむよ
+fetch(chrome.runtime.getURL("default_config.json"))
+  .then((res) => res.json())
+  .then((data) => {
+    // 読みこめたら箱に入れるよ
+    defaultConfig = data;
+  })
+  .catch(() => {
+    // もし失敗したら、からっぽのままにしておくよ
+    console.error("default_config.jsonを読み込めませんでした");
+  });
 
 
 // 1. 500msごとに監視
@@ -30,6 +29,11 @@ setInterval(() => {
   );
   const nameP = document.querySelector("a.dropdown-toggle.username p");
   const dateSpan = document.querySelector("div.floatLeft.jdate span");
+
+  // 初期設定がまだ読み込めていなければ何もしないよ
+  if (defaultConfig.workTypes.length === 0 || defaultConfig.reasons.length === 0) {
+    return;
+  }
 
   // 保存キーを作る関数を定義
   function makeStorageKey() {
