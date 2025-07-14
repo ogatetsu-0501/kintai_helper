@@ -1,0 +1,29 @@
+@echo off
+REM Githubから最新バージョンをダウンロードして更新するバッチ
+REM 更新用にGithubのURLを入れるよ
+set REPO_URL=https://github.com/ogatetsu-0501/kintai_helper
+
+REM 作業用の一時フォルダを作るよ
+set TMP_DIR=%TEMP%\kintai_update
+if exist %TMP_DIR% rd /s /q %TMP_DIR%
+mkdir %TMP_DIR%
+
+REM 最新のソースを取得
+curl -L %REPO_URL%/archive/refs/heads/main.zip -o %TMP_DIR%\update.zip
+
+REM ZIPを展開するよ
+powershell -Command "Expand-Archive -Path '%TMP_DIR%\update.zip' -DestinationPath '%TMP_DIR%'"
+for %%d in (%TMP_DIR%\*) do set UNZIP_DIR=%%d
+
+REM 展開したファイルを上書きコピー
+if exist "%UNZIP_DIR%\default_config.json" del "%UNZIP_DIR%\default_config.json"
+xcopy /E /Y "%UNZIP_DIR%\*" ..\..\
+
+REM お掃除
+rd /s /q %TMP_DIR%
+
+REM 更新が終わったらkintaiページを開いて拡張をリロードするよ
+start "" "https://kintai.jinjer.biz/staffs/time_cards?reload_extension=1"
+
+echo 更新が終わりました。ブラウザが自動で再読み込みされます。
+pause

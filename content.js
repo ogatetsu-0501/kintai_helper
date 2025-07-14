@@ -1,5 +1,88 @@
 // == content.js ==
 
+// == バージョンチェック ==
+// Github上のmanifest.jsonを読んでバージョンを比べるよ
+// Githubに置いてあるmanifest.jsonのURLを指定するよ
+const remoteManifestUrl =
+  "https://raw.githubusercontent.com/ogatetsu-0501/kintai_helper/main/manifest.json";
+
+// == 更新後の自動リロード ==
+// URLに?reload_extension=1 がついていたら拡張をリロードするよ
+const params = new URLSearchParams(location.search);
+if (params.get("reload_extension") === "1") {
+  // サービスワーカーにメッセージを送ってリロードしてもらう
+  chrome.runtime.sendMessage("reload_extension", () => {
+    // 少し待ってからページを再読み込み
+    params.delete("reload_extension");
+    const url = location.pathname + (params.toString() ? "?" + params.toString() : "");
+    setTimeout(() => {
+      location.replace(url);
+    }, 500);
+  });
+}
+
+// ★ トーストを表示するかんたんな関数
+function showToast(msg) {
+  // ちいさなメッセージ箱を作るよ
+  const t = document.createElement("div");
+  t.textContent = msg;
+  t.style.position = "fixed";
+  t.style.bottom = "10px";
+  t.style.right = "10px";
+  t.style.background = "#333";
+  t.style.color = "#fff";
+  t.style.padding = "5px 10px";
+  t.style.borderRadius = "4px";
+  t.style.zIndex = "10001";
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+// ★ 更新方法を知らせる通知を作る関数
+function showUpdateNotice(folder, script) {
+  // フルパスを作るよ
+  const path = chrome.runtime.getURL(`update/${folder}`);
+  const box = document.createElement("div");
+  box.id = "kintai-update-notice";
+  box.style.position = "fixed";
+  box.style.top = "10px";
+  box.style.right = "10px";
+  box.style.zIndex = "10000";
+  box.style.background = "#fff";
+  box.style.border = "1px solid #000";
+  box.style.padding = "10px";
+  box.style.fontSize = "14px";
+  box.textContent = `新しいバージョンがあります。${path} フォルダの ${script} を実行してください。`;
+  const btn = document.createElement("button");
+  btn.textContent = "パスをコピー";
+  btn.style.marginLeft = "8px";
+  btn.addEventListener("click", () => {
+    navigator.clipboard.writeText(path).then(() => {
+      showToast("コピーしました！");
+    });
+  });
+  box.appendChild(document.createElement("br"));
+  box.appendChild(btn);
+  document.body.appendChild(box);
+}
+
+fetch(remoteManifestUrl)
+  .then((r) => r.json())
+  .then((remote) => {
+    // 自分のバージョンを取得
+    const localVersion = chrome.runtime.getManifest().version;
+    // 違っていたら更新方法を知らせる
+    if (remote.version && remote.version !== localVersion) {
+      const isWin = navigator.userAgent.includes("Windows");
+      const folder = isWin ? "windows" : "mac";
+      const script = isWin ? "update.bat" : "update.sh";
+      // 自動でタブを開くのではなく通知を表示するよ
+      showUpdateNotice(folder, script);
+    }
+  })
+  .catch((e) => console.error("バージョンチェックに失敗しました", e));
+// == バージョンチェックここまで ==
+
 // 0. 初期フラグ
 let previousVisible = false; // 勤怠実績UIが描画済みか
 let tempSaveInitialized = false; // 一時保存処理を設定したか
