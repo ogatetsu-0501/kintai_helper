@@ -17,12 +17,15 @@ UNZIP_DIR=$(find "$TMP_DIR" -maxdepth 1 -type d -name "kintai_helper-main" | hea
 # 使わないファイルを消すよ
 rm -f "$UNZIP_DIR/default_config.json"
 rm -f "$UNZIP_DIR/update/windows/update.bat"
+rm -f "$UNZIP_DIR/update/mac/update.command"   # ← これも消すよ
 
 # 中身をコピーして上書きするよ
 cp -R "$UNZIP_DIR"/* ../../
 
 # 更新した日時を取得して保存するよ
-COMMIT_DATE=$(curl -s "https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main" | grep -m 1 '"date"' | sed -E 's/.*"date": "([^"]+)".*/\1/')
+COMMIT_DATE=$(curl -s "https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main" \
+  | grep -m 1 '"date"' \
+  | sed -E 's/.*"date": "([^"]+)".*/\1/')
 echo "$COMMIT_DATE" > ../../last_update.txt
 
 # 一時フォルダを片付けるよ
