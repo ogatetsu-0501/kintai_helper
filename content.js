@@ -50,8 +50,9 @@ function applyDefaultButtonStyle(btn) {
   btn.style.border = "1px solid #66d3e4";
   // サイズ感を合わせるための設定
   btn.style.fontSize = "13px";
-  btn.style.padding = ".7em 2em";
-  btn.style.minWidth = "100px";
+  // 文字が折り返さないようにして横幅を自動調整するよ
+  btn.style.padding = "0.5em 1em";
+  btn.style.whiteSpace = "nowrap";
   // 角を少し丸くして中央ぞろえにする
   btn.style.borderRadius = "2px";
   btn.style.display = "inline-block";
@@ -343,7 +344,8 @@ setInterval(() => {
     editBtn.style.position = "absolute";
     editBtn.style.top = "0";
     editBtn.style.right = "0";
-    editBtn.style.width = "140px"; // ボタン幅をそろえる
+    // 横幅は自動で決めてもらうよ
+    editBtn.style.width = "auto";
     editBtn.style.background = "#888";
     editBtn.style.color = "#fff";
     editBtn.style.border = "none";
@@ -352,7 +354,8 @@ setInterval(() => {
     const saveBtn = document.createElement("button");
     saveBtn.textContent = "確定";
     applyDefaultButtonStyle(saveBtn); // 共通の見た目を付けるよ
-    saveBtn.style.width = "140px"; // ボタン幅をそろえる
+    // 横幅は自動で決めてもらうよ
+    saveBtn.style.width = "auto";
     saveBtn.style.background = "#28a745";
     saveBtn.style.color = "#fff";
     saveBtn.style.border = "none";
@@ -362,7 +365,8 @@ setInterval(() => {
     const cancelBtn = document.createElement("button");
     cancelBtn.textContent = "キャンセル";
     applyDefaultButtonStyle(cancelBtn); // 共通の見た目を付けるよ
-    cancelBtn.style.width = "140px"; // ボタン幅をそろえる
+    // 横幅は自動で決めてもらうよ
+    cancelBtn.style.width = "auto";
     cancelBtn.style.background = "#aaa";
     cancelBtn.style.color = "#fff";
     cancelBtn.style.border = "none";
@@ -373,7 +377,8 @@ setInterval(() => {
     const exportBtn = document.createElement("button");
     exportBtn.textContent = "設定ダウンロード";
     applyDefaultButtonStyle(exportBtn); // 共通の見た目を付けるよ
-    exportBtn.style.width = "140px"; // ボタン幅をそろえる
+    // 横幅は自動で決めてもらうよ
+    exportBtn.style.width = "auto";
     exportBtn.style.background = "#007bff";
     exportBtn.style.color = "#fff";
     exportBtn.style.border = "none";
@@ -418,8 +423,8 @@ setInterval(() => {
         const index = idx; // 並び順を覚えておく
         const btn = document.createElement("button");
         btn.textContent = name;
-        btn.style.padding = "6px 10px";
-        btn.style.margin = "2px";
+        // 見た目をそろえるため共通のスタイルを当てるよ
+        applyDefaultButtonStyle(btn);
         btn.style.cursor = "pointer";
         btn.style.position = "relative";
 
@@ -507,7 +512,8 @@ setInterval(() => {
         const addBtn = document.createElement("button");
         addBtn.textContent = "＋追加";
         applyDefaultButtonStyle(addBtn); // 共通の見た目を付けるよ
-        addBtn.style.width = "140px"; // 既存のボタンと同じ幅にする
+        // 横幅は自動で決めてもらうよ
+        addBtn.style.width = "auto"; // 既存のボタンと同じデザインにする
         addBtn.style.background = "#0b79d0";
         addBtn.style.color = "#fff";
         addBtn.addEventListener("click", () => {
