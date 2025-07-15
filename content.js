@@ -6,23 +6,6 @@ const commitApiUrl =
   "https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main";
 const localUpdateUrl = chrome.runtime.getURL("last_update.txt");
 
-// ★ トーストを表示するかんたんな関数
-function showToast(msg) {
-  // ちいさなメッセージ箱を作るよ
-  const t = document.createElement("div");
-  t.textContent = msg;
-  t.style.position = "fixed";
-  t.style.bottom = "10px";
-  t.style.right = "10px";
-  t.style.background = "#333";
-  t.style.color = "#fff";
-  t.style.padding = "5px 10px";
-  t.style.borderRadius = "4px";
-  t.style.zIndex = "10001";
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2000);
-}
-
 // ★ 更新方法を知らせる通知を作る関数
 function showUpdateNotice(folder, script) {
   // 表示用の入れ物を作るよ
