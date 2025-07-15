@@ -67,7 +67,11 @@ let tempSaveInitialized = false; // 一時保存処理を設定したか
 let tempDataRestored = false; // 一時保存データを復元したかどうか
 let restoredReason = ""; // 復元した理由テキスト
 // 初期ボタンの設定を入れる箱をつくるよ
-let defaultConfig = { workTypes: [], reasons: [] };
+// デフォルト設定の入れ物を作るよ
+// title: ボタンの上に書く見出し
+// workTypes: 勤務種類ボタンの一覧
+// reasons: 理由ボタンの一覧
+let defaultConfig = { title: "", workTypes: [], reasons: [] };
 
 // default_config.json から設定を読みこむよ
 fetch(chrome.runtime.getURL("default_config.json"))
@@ -92,7 +96,11 @@ setInterval(() => {
   const dateSpan = document.querySelector("div.floatLeft.jdate span");
 
   // 初期設定がまだ読み込めていなければ何もしないよ
-  if (defaultConfig.workTypes.length === 0 || defaultConfig.reasons.length === 0) {
+  if (
+    defaultConfig.workTypes.length === 0 ||
+    defaultConfig.reasons.length === 0 ||
+    !defaultConfig.title
+  ) {
     return;
   }
 
@@ -248,6 +256,7 @@ setInterval(() => {
     // JSON から読んだ初期値をここで使うよ
     const defaultWorkTypes = [...defaultConfig.workTypes];
     const defaultReasons = [...defaultConfig.reasons];
+    const defaultTitle = defaultConfig.title;
     let tempWorkTypes = [];
     let tempReasons = [];
     let selectedWorkType = "";
@@ -258,7 +267,7 @@ setInterval(() => {
     let preReasonVisible = false;
 
     // 見出しの文字を入れておく変数
-    let titleText = "勤務実績";
+    let titleText = defaultTitle;
     let tempTitleText = titleText;
 
     // ローカルストレージからタイトルを読みこむよ
@@ -543,7 +552,10 @@ setInterval(() => {
           chrome.storage.local.set({ reasons: tempReasons });
         }
         if (typeof data.title === "string") titleText = data.title;
-        else chrome.storage.local.set({ title: titleText });
+        else {
+          titleText = defaultTitle;
+          chrome.storage.local.set({ title: titleText });
+        }
         tempTitleText = titleText;
         renderAll();
         if (callback) callback();
@@ -596,6 +608,7 @@ setInterval(() => {
     // 現在の設定を JSON にしてダウンロードするよ
     exportBtn.addEventListener("click", () => {
       const data = {
+        title: tempTitleText,
         workTypes: tempWorkTypes,
         reasons: tempReasons,
       };
