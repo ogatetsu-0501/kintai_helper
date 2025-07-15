@@ -56,8 +56,10 @@ Promise.all([
     const remoteTime = Date.parse(remote.commit.committer.date);
     if (isNaN(localTime) || remoteTime > localTime) {
       const isWin = navigator.userAgent.includes("Windows");
-      const folder = isWin ? "windows" : "mac";
-      const script = isWin ? "update.bat" : "update.sh";
+      // Windowsならwinフォルダ、それ以外ならmacフォルダを使うよ
+      const folder = isWin ? "win" : "mac";
+      // 実行するスクリプト名もOSで分けるよ
+      const script = isWin ? "update.bat" : "update.command";
       // 自動でタブを開くのではなく通知を表示するよ
       showUpdateNotice(folder, script);
     }

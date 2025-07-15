@@ -18,7 +18,7 @@ for /d %%d in ("%TMP_DIR%\*") do set "UNZIP_DIR=%%~fd"
 
 REM ===== いらないファイルを消す =====
 if exist "%UNZIP_DIR%\default_config.json"         del "%UNZIP_DIR%\default_config.json"
-if exist "%UNZIP_DIR%\update\windows\update.bat"   del "%UNZIP_DIR%\update\windows\update.bat"
+if exist "%UNZIP_DIR%\update\win\update.bat"   del "%UNZIP_DIR%\update\win\update.bat"
 if exist "%UNZIP_DIR%\update\mac\update.command"   del "%UNZIP_DIR%\update\mac\update.command"  REM ← 追加行
 
 REM ===== ダウンロードしたファイルをコピーするよ（元ファイルを上書き） =====
