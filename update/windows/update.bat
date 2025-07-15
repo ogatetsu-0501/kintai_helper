@@ -23,6 +23,7 @@ echo 展開先フォルダ=%UNZIP_DIR%
 
 
 if exist "%UNZIP_DIR%\default_config.json" del "%UNZIP_DIR%\default_config.json"
+if exist "%UNZIP_DIR%\update\windows\update.bat" del "%UNZIP_DIR%\update\windows\update.bat"
 xcopy /E /Y "%UNZIP_DIR%\*" ..\..\
 
 
