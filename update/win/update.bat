@@ -44,10 +44,8 @@ REM ===== 新しいファイルをコピーするよ =====
 xcopy /E /Y "%UNZIP_DIR%\*" ..\..\
 
 REM ===== 更新した日時を保存するよ =====
-for /f "usebackq delims=" %%A in (
-  %PS_CMD% -Command "(Invoke-WebRequest -UseBasicParsing https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main | ConvertFrom-Json).commit.committer.date"
-) do set "CDATE=%%A"
-echo %CDATE%> ..\..\last_update.txt
+REM いまの%DATE%と%TIME%をそのまま書き込むよ
+echo %DATE% %TIME%> ..\..\last_update.txt
 
 REM ===== 一時フォルダを消すよ =====
 rd /s /q "%TMP_DIR%"
