@@ -18,6 +18,7 @@ UNZIP_DIR=$(find "$TMP_DIR" -maxdepth 1 -type d -name "kintai_helper-main" | hea
 rm -f "$UNZIP_DIR/default_config.json"
 rm -f "$UNZIP_DIR/update/win/update.bat"
 rm -f "$UNZIP_DIR/update/mac/update.command"   # ← これも消すよ
+rm -f "$UNZIP_DIR/last_update.txt"              # ← 新しく追加したよ
 
 # 中身をコピーして上書きするよ
 cp -R "$UNZIP_DIR"/* ../../
