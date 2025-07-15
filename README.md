@@ -26,6 +26,9 @@
 1. 画面右上に更新案内が表示されたら`update`フォルダのスクリプトを実行します。
    - Windows: `update/win/update.bat`
    - Mac: `update/mac/update.command`
+   - WindowsでPowerShellが見つからない場合は、`C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`の存在を確認して
+     PATHに追加してください。もしそれでも見つからないときは、更新日時だけ
+     `last_update.txt`に書き込んで処理を終了します。
 2. スクリプト実行後、Chromeの拡張機能ページで**更新**ボタンを押してください。
 
 ## ライセンス
