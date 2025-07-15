@@ -257,10 +257,22 @@ setInterval(() => {
     let preSelectedReasons = [];
     let preReasonVisible = false;
 
-    // 初期文字
-    textarea.value = "勤務実績";
-    // 初期値入力後に一時保存データを復元
-    restoreTempData();
+    // 見出しの文字を入れておく変数
+    let titleText = "勤務実績";
+    let tempTitleText = titleText;
+
+    // ローカルストレージからタイトルを読みこむよ
+    chrome.storage.local.get(["title"], (data) => {
+      if (typeof data.title === "string") {
+        titleText = data.title;
+      } else {
+        chrome.storage.local.set({ title: titleText });
+      }
+      tempTitleText = titleText;
+      textarea.value = titleText; // 最初の行をセット
+      // 初期値入力後に一時保存データを復元
+      restoreTempData();
+    });
 
     // ────────────────
     // 2-2. DOMコンテナ
@@ -283,11 +295,22 @@ setInterval(() => {
     reasonWrapper.style.flexWrap = "wrap";
     reasonWrapper.style.gap = "6px";
 
+    // 見出しを編集する入力欄だよ
+    const titleInput = document.createElement("input");
+    titleInput.style.marginBottom = "6px";
+    titleInput.style.padding = "4px";
+    titleInput.style.display = "none";
+    titleInput.value = tempTitleText;
+    titleInput.addEventListener("input", () => {
+      tempTitleText = titleInput.value;
+      updateTextarea();
+    });
+
     // ────────────────
     // 2-3. 編集／確定／キャンセルボタン
     // ────────────────
     const editBtn = document.createElement("button");
-    editBtn.textContent = "ボタン編集";
+    editBtn.textContent = "設定";
     editBtn.style.position = "absolute";
     editBtn.style.top = "0";
     editBtn.style.right = "0";
@@ -339,8 +362,8 @@ setInterval(() => {
     // 2-5. テキスト更新
     // ────────────────
     function updateTextarea() {
-      // 最初の行はいつも固定で書くよ
-      let text = "勤務実績";
+      // 最初の行は保存したタイトルを書くよ
+      let text = editMode ? tempTitleText : titleText;
 
       // 仕事の種類を選んだら2行目に書くよ
       if (selectedWorkType) text += `\n${selectedWorkType}`;
@@ -489,11 +512,14 @@ setInterval(() => {
         saveBtn.style.display = "inline-block";
         exportBtn.style.display = "none";
         cancelBtn.style.display = "inline-block";
+        titleInput.style.display = "block";
+        titleInput.value = tempTitleText;
       } else {
         editBtn.style.display = "inline-block";
         saveBtn.style.display = "none";
         exportBtn.style.display = "inline-block";
         cancelBtn.style.display = "none";
+        titleInput.style.display = "none";
       }
       renderButtons(tempWorkTypes, workTypeWrapper, "work");
       if (editMode) reasonWrapper.style.display = "flex";
@@ -505,7 +531,7 @@ setInterval(() => {
     // 2-8. chrome.storage.localから読み込み＆初回描画
     // ────────────────
     function loadAndRender(callback) {
-      chrome.storage.local.get(["workTypes", "reasons"], (data) => {
+      chrome.storage.local.get(["workTypes", "reasons", "title"], (data) => {
         if (Array.isArray(data.workTypes)) tempWorkTypes = [...data.workTypes];
         else {
           tempWorkTypes = [...defaultWorkTypes];
@@ -516,6 +542,9 @@ setInterval(() => {
           tempReasons = [...defaultReasons];
           chrome.storage.local.set({ reasons: tempReasons });
         }
+        if (typeof data.title === "string") titleText = data.title;
+        else chrome.storage.local.set({ title: titleText });
+        tempTitleText = titleText;
         renderAll();
         if (callback) callback();
       });
@@ -528,6 +557,7 @@ setInterval(() => {
       preSelectedWorkType = selectedWorkType;
       preSelectedReasons = [...selectedReasons];
       preReasonVisible = reasonWrapper.style.display !== "none";
+      tempTitleText = titleText; // 今のタイトルをコピー
       editMode = true;
       renderAll();
     });
@@ -538,9 +568,11 @@ setInterval(() => {
         {
           workTypes: tempWorkTypes,
           reasons: tempReasons,
+          title: tempTitleText,
         },
         () => {
           editMode = false;
+          titleText = tempTitleText; // 変更を確定
           selectedWorkType = preSelectedWorkType;
           selectedReasons = [...preSelectedReasons];
           loadAndRender(() => {
@@ -555,6 +587,7 @@ setInterval(() => {
       editMode = false;
       selectedWorkType = preSelectedWorkType;
       selectedReasons = [...preSelectedReasons];
+      tempTitleText = titleText; // タイトルを元に戻す
       loadAndRender(() => {
         reasonWrapper.style.display = preReasonVisible ? "flex" : "none";
       });
@@ -580,7 +613,7 @@ setInterval(() => {
     // ────────────────
     // 2-10. DOMへ挿入＆ロード
     // ────────────────
-    wrapper.append(editBtn, workTypeWrapper, reasonWrapper, actionGroup);
+    wrapper.append(editBtn, titleInput, workTypeWrapper, reasonWrapper, actionGroup);
     textarea.parentElement.appendChild(wrapper);
     loadAndRender(() => {
       if (tempDataRestored && restoredReason) {
