@@ -30,8 +30,15 @@ echo %CDATE%> ..\..\last_update.txt
 REM ===== もう使わない一時フォルダを消す =====
 rd /s /q "%TMP_DIR%"
 
-REM ===== Chromeで拡張機能のページを開く =====
-start chrome "chrome://extensions/"
+REM ===== Chromeが動いているか確認する =====
+tasklist /FI "IMAGENAME eq chrome.exe" | find /I "chrome.exe" >nul
+if %ERRORLEVEL%==0 (
+    REM ===== 起動中なら新しいタブで拡張機能ページを開く =====
+    start "" chrome "chrome://extensions/"
+) else (
+    REM ===== 起動していなければChromeを起動して開く =====
+    start "" chrome "chrome://extensions/"
+)
 echo 拡張機能ページを開きました。拡張機能を更新してください。
 pause
 
