@@ -318,11 +318,15 @@ setInterval(() => {
     workTypeWrapper.style.display = "flex";
     workTypeWrapper.style.flexWrap = "wrap";
     workTypeWrapper.style.gap = "8px";
+    // 仕事の種類ボタンの下に少しゆとりを作るよ
+    workTypeWrapper.style.marginBottom = "12px";
 
     const reasonWrapper = document.createElement("div");
     reasonWrapper.style.display = "none";
     reasonWrapper.style.flexWrap = "wrap";
     reasonWrapper.style.gap = "6px";
+    // 理由ボタン群の下にもゆとりを入れるね
+    reasonWrapper.style.marginBottom = "12px";
 
     // 見出しを編集する入力欄だよ
     const titleInput = document.createElement("input");
@@ -384,6 +388,8 @@ setInterval(() => {
     exportBtn.style.border = "none";
     exportBtn.style.cursor = "pointer";
     exportBtn.style.display = "inline-block";
+    // 他のボタンと少し離すため上側に余白を付けるよ
+    exportBtn.style.marginTop = "12px";
 
     // ────────────────
     // 2-4. 下部中央に確定/キャンセルグループ
@@ -484,6 +490,8 @@ setInterval(() => {
             btn.style.background =
               selectedWorkType === name ? "#28a745" : "#0b79d0";
             btn.style.color = "#fff";
+            // 色付きボタンなので枠線はいらないよ
+            btn.style.border = "none";
             btn.addEventListener("click", () => {
               selectedWorkType = selectedWorkType === name ? "" : name;
               if (!selectedWorkType) selectedReasons = [];
@@ -496,6 +504,8 @@ setInterval(() => {
             if (selIdx >= 0) {
               btn.style.background = "#ffc107";
               btn.style.color = "#000";
+              // 選ばれたときは色が付くから枠線はいらないね
+              btn.style.border = "none";
             }
             btn.addEventListener("click", () => {
               const i2 = selectedReasons.indexOf(name);
