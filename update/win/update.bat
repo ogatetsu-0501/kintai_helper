@@ -14,22 +14,32 @@ curl -L "%REPO_URL%/archive/refs/heads/main.zip" -o "%TMP_DIR%\update.zip"
 
 REM ===== PowerShellの場所を探すよ =====
 set "PS_EXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+set "PS_CMD="
 if exist "%PS_EXE%" (
     set "PS_CMD=\"%PS_EXE%\""
 ) else (
     where powershell >nul 2>&1
     if %ERRORLEVEL%==0 (
-        for /f "delims=" %%p in ('where powershell') do set "PS_CMD=%%p"
-    ) else (
-        echo %DATE% %TIME%> ..\..\last_update.txt
-        echo PowerShellが見つからないので更新できません。
-        pause
-        goto :EOF
+        for /f "delims=" %%p in ('where powershell') do if not defined PS_CMD set "PS_CMD=%%p"
     )
+)
+if not defined PS_CMD (
+    REM ユーザーフォルダも調べるよ
+    set "USER_PS=%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\powershell.exe"
+    if exist "%USER_PS%" set "PS_CMD=%USER_PS%"
 )
 
 REM ===== ZIPファイルを解凍するよ =====
-%PS_CMD% -Command "Expand-Archive -Path '%TMP_DIR%\update.zip' -DestinationPath '%TMP_DIR%'"
+if defined PS_CMD (
+    %PS_CMD% -Command "Expand-Archive -Path '%TMP_DIR%\update.zip' -DestinationPath '%TMP_DIR%'"
+) else (
+    echo PowerShellが見つからないのでtar.exeで解凍するよ
+    if exist "%SystemRoot%\System32\tar.exe" (
+        "%SystemRoot%\System32\tar.exe" -xf "%TMP_DIR%\update.zip" -C "%TMP_DIR%"
+    ) else (
+        tar -xf "%TMP_DIR%\update.zip" -C "%TMP_DIR%"
+    )
+)
 
 REM ===== 解凍したフォルダの場所を調べるよ =====
 for /d %%d in ("%TMP_DIR%\*") do set "UNZIP_DIR=%%~fd"
