@@ -16,7 +16,7 @@ REM ===== PowerShellの場所を探すよ =====
 set "PS_EXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 set "PS_CMD="
 if exist "%PS_EXE%" (
-    set "PS_CMD=\"%PS_EXE%\""
+    set "PS_CMD=%PS_EXE%"
 ) else (
     where powershell >nul 2>&1
     if %ERRORLEVEL%==0 (
@@ -31,7 +31,7 @@ if not defined PS_CMD (
 
 REM ===== ZIPファイルを解凍するよ =====
 if defined PS_CMD (
-    %PS_CMD% -Command "Expand-Archive -Path '%TMP_DIR%\update.zip' -DestinationPath '%TMP_DIR%'"
+    "%PS_CMD%" -Command "Expand-Archive -Path '%TMP_DIR%\update.zip' -DestinationPath '%TMP_DIR%'"
 ) else (
     echo PowerShellが見つからないのでtar.exeで解凍するよ
     if exist "%SystemRoot%\System32\tar.exe" (
