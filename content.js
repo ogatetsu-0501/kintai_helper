@@ -97,81 +97,57 @@ fetch(chrome.runtime.getURL("default_config.json"))
 // ====== スクロール＆ハイライト処理 ======
 // 表が出てくるまで待ってからスクロールし、勤務予定の行をハイライトする関数
 function watchTableAndScroll() {
-  console.log("[watchTableAndScroll] 処理を開始します");
-
   // ① テーブルを入れているスクロールボックスを探すよ
   const box = document.querySelector("div.table-scroll-box");
   if (box) {
-    console.log("[watchTableAndScroll] テーブルのコンテナを見つけました", box);
-
     // ② テーブルの行（tbody内のtr）を全部取ってくるよ
     const rows = box.querySelectorAll("tbody tr");
-    console.log("[watchTableAndScroll] 行の数:", rows.length);
 
     // ③ それぞれの行を順番にチェックするよ
     for (const row of rows) {
       // └ この行の「勤務状況」のセルを探すよ
       const statusCell = row.querySelector("td.status span");
       const statusText = statusCell ? statusCell.textContent.trim() : "";
-      console.log("[watchTableAndScroll] 行のステータス:", statusText);
 
       // ④ ステータスが「勤務予定」なら、その行をハイライトして、前の行をスクロール
       if (statusCell && statusText === "勤務予定") {
-        console.log(
-          "[watchTableAndScroll] 対象のステータス「勤務予定」を発見しました"
-        );
-
         // ◇ この行の各セルを薄い黄色にしてハイライトするよ
         const cells = row.querySelectorAll("td");
         cells.forEach((cell) => {
           cell.style.backgroundColor = "lightyellow"; // セル単位で色を設定
         });
-        console.log("[watchTableAndScroll] セル背景色を設定しました");
 
         // ◇ さらに、その前の行をスクロールボックス内で一番上に合わせる
         const prev = row.previousElementSibling;
         if (prev) {
-          console.log("[watchTableAndScroll] 前の行を取得しました", prev);
           prev.scrollIntoView({
             behavior: "auto",
             block: "start",
             inline: "nearest",
           });
-          console.log("[watchTableAndScroll] scrollIntoView を実行しました");
         } else {
-          console.log("[watchTableAndScroll] 対象行の前の行がありません");
         }
         break; // 見つけたらもう終わり
       }
     }
 
-    console.log("[watchTableAndScroll] 処理を終了します（成功）");
     return true; // スクロールとハイライト完了
   }
 
   // ⑤ まだテーブルがなかったとき
-  console.log("[watchTableAndScroll] テーブルのコンテナが見つかりません");
   return false; // 再試行が必要
 }
 
 // ====== ページ読み込み後の監視処理 ======
 window.addEventListener("load", () => {
-  console.log("[load] ページ読み込み完了");
-
   // まず一度だけ試してみるよ
   if (watchTableAndScroll()) {
-    console.log("[load] テーブル処理が完了したので監視は不要です");
     return;
   }
 
   // テーブルがまだ無いときは、DOMの変化をずっと見張るよ
-  console.log("[load] テーブルがまだ無いので DOM 監視を開始します");
   const observer = new MutationObserver((mutations, obs) => {
-    console.log("[MutationObserver] DOM の変更を検出しました", mutations);
     if (watchTableAndScroll()) {
-      console.log(
-        "[MutationObserver] テーブル処理が完了したので監視を停止します"
-      );
       obs.disconnect();
     }
   });
