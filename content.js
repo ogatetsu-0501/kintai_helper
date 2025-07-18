@@ -6,7 +6,6 @@ const commitApiUrl =
   "https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main";
 const localUpdateUrl = chrome.runtime.getURL("last_update.txt");
 
-
 // ★ 更新方法を知らせる通知を作る関数
 function showUpdateNotice(folder, script) {
   // 表示用の入れ物を作るよ
@@ -47,8 +46,12 @@ function applyDefaultButtonStyle(btn) {
 }
 
 Promise.all([
-  fetch(localUpdateUrl).then((r) => r.text()).catch(() => ""),
-  fetch(commitApiUrl).then((r) => r.json()).catch(() => null),
+  fetch(localUpdateUrl)
+    .then((r) => r.text())
+    .catch(() => ""),
+  fetch(commitApiUrl)
+    .then((r) => r.json())
+    .catch(() => null),
 ])
   .then(([localText, remote]) => {
     if (!remote) return;
@@ -91,41 +94,91 @@ fetch(chrome.runtime.getURL("default_config.json"))
     console.error("default_config.jsonを読み込めませんでした");
   });
 
-// ====== スクロール処理 ======
-// 表が出てくるまで待ってからスクロールする関数
+// ====== スクロール＆ハイライト処理 ======
+// 表が出てくるまで待ってからスクロールし、勤務予定の行をハイライトする関数
 function watchTableAndScroll() {
-  // 表の入れ物を探すよ
+  console.log("[watchTableAndScroll] 処理を開始します");
+
+  // ① テーブルを入れているスクロールボックスを探すよ
   const box = document.querySelector("div.table-scroll-box");
   if (box) {
-    // もう見つかっていたら行を調べる
+    console.log("[watchTableAndScroll] テーブルのコンテナを見つけました", box);
+
+    // ② テーブルの行（tbody内のtr）を全部取ってくるよ
     const rows = box.querySelectorAll("tbody tr");
+    console.log("[watchTableAndScroll] 行の数:", rows.length);
+
+    // ③ それぞれの行を順番にチェックするよ
     for (const row of rows) {
-      // それぞれの行の勤務状況を確認
+      // └ この行の「勤務状況」のセルを探すよ
       const statusCell = row.querySelector("td.status span");
-      if (statusCell && statusCell.textContent.trim() === "勤務予定") {
+      const statusText = statusCell ? statusCell.textContent.trim() : "";
+      console.log("[watchTableAndScroll] 行のステータス:", statusText);
+
+      // ④ ステータスが「勤務予定」なら、その行をハイライトして、前の行をスクロール
+      if (statusCell && statusText === "勤務予定") {
+        console.log(
+          "[watchTableAndScroll] 対象のステータス「勤務予定」を発見しました"
+        );
+
+        // ◇ この行の各セルを薄い黄色にしてハイライトするよ
+        const cells = row.querySelectorAll("td");
+        cells.forEach((cell) => {
+          cell.style.backgroundColor = "lightyellow"; // セル単位で色を設定
+        });
+        console.log("[watchTableAndScroll] セル背景色を設定しました");
+
+        // ◇ さらに、その前の行をスクロールボックス内で一番上に合わせる
         const prev = row.previousElementSibling;
         if (prev) {
-          // 前の行が表の一番上にくるようにスクロール
-          box.scrollTop = prev.offsetTop - box.offsetTop;
+          console.log("[watchTableAndScroll] 前の行を取得しました", prev);
+          prev.scrollIntoView({
+            behavior: "auto",
+            block: "start",
+            inline: "nearest",
+          });
+          console.log("[watchTableAndScroll] scrollIntoView を実行しました");
+        } else {
+          console.log("[watchTableAndScroll] 対象行の前の行がありません");
         }
-        break; // 見つけたら終わる
+        break; // 見つけたらもう終わり
       }
     }
-    return true; // 成功したよ
+
+    console.log("[watchTableAndScroll] 処理を終了します（成功）");
+    return true; // スクロールとハイライト完了
   }
-  return false; // まだ表が無かったよ
+
+  // ⑤ まだテーブルがなかったとき
+  console.log("[watchTableAndScroll] テーブルのコンテナが見つかりません");
+  return false; // 再試行が必要
 }
 
-// ページが読み込まれたら監視を始める
+// ====== ページ読み込み後の監視処理 ======
 window.addEventListener("load", () => {
-  if (watchTableAndScroll()) return; // すぐ見つかったらおしまい
-  // 表がまだ無いときはDOMの変化を監視する
-  const observer = new MutationObserver(() => {
-    if (watchTableAndScroll()) observer.disconnect();
+  console.log("[load] ページ読み込み完了");
+
+  // まず一度だけ試してみるよ
+  if (watchTableAndScroll()) {
+    console.log("[load] テーブル処理が完了したので監視は不要です");
+    return;
+  }
+
+  // テーブルがまだ無いときは、DOMの変化をずっと見張るよ
+  console.log("[load] テーブルがまだ無いので DOM 監視を開始します");
+  const observer = new MutationObserver((mutations, obs) => {
+    console.log("[MutationObserver] DOM の変更を検出しました", mutations);
+    if (watchTableAndScroll()) {
+      console.log(
+        "[MutationObserver] テーブル処理が完了したので監視を停止します"
+      );
+      obs.disconnect();
+    }
   });
+
+  // body配下の要素追加・削除を監視
   observer.observe(document.body, { childList: true, subtree: true });
 });
-
 
 // 1. 500msごとに監視
 setInterval(() => {
@@ -162,21 +215,21 @@ setInterval(() => {
           // 🌟 保存したHTMLを丸ごと復元
           if (obj.hourWorkHtml) {
             const hourWork = document.querySelector(".hour-work");
-          if (hourWork) {
-            hourWork.outerHTML = obj.hourWorkHtml;
-            // 復元した要素の入力欄を使えるようにする
-            const newHourWork = document.querySelector(".hour-work");
-            if (newHourWork) {
-              newHourWork.querySelectorAll("input").forEach((inp) => {
-                inp.disabled = false;
-              });
-              // セレクトも使えるようにするよ
-              newHourWork.querySelectorAll("select").forEach((sel) => {
-                sel.disabled = false;
-              });
+            if (hourWork) {
+              hourWork.outerHTML = obj.hourWorkHtml;
+              // 復元した要素の入力欄を使えるようにする
+              const newHourWork = document.querySelector(".hour-work");
+              if (newHourWork) {
+                newHourWork.querySelectorAll("input").forEach((inp) => {
+                  inp.disabled = false;
+                });
+                // セレクトも使えるようにするよ
+                newHourWork.querySelectorAll("select").forEach((sel) => {
+                  sel.disabled = false;
+                });
+              }
             }
           }
-        }
 
           // 入力欄へ保存した値を入れる
           const workInputs = document.querySelectorAll(
@@ -217,8 +270,7 @@ setInterval(() => {
           tempDataRestored = true;
           // 復元したらもう使わないので消しておくよ
           chrome.storage.local.remove(makeStorageKey());
-        } catch (e) {
-        }
+        } catch (e) {}
       }
     });
   }
@@ -226,7 +278,6 @@ setInterval(() => {
   // ■ 一時保存の処理を一度だけ設定
   if (!tempSaveInitialized && cancelApplyBtn && nameP && dateSpan) {
     tempSaveInitialized = true;
-
 
     // 入力したデータをしまっておく簡単な関数
     function saveTempData(showAlert) {
@@ -264,7 +315,6 @@ setInterval(() => {
         if (showAlert) alert("一時保存しました");
       });
     }
-
 
     // 申請取消ボタンを押したときにも自動保存
     cancelApplyBtn.addEventListener("click", () => {
@@ -575,7 +625,7 @@ setInterval(() => {
     // 2-7. 全要素再描画
     // ────────────────
     function renderAll() {
-        // 編集モードかどうかでボタンを出し分けるよ
+      // 編集モードかどうかでボタンを出し分けるよ
       if (editMode) {
         editBtn.style.display = "none";
         saveBtn.style.display = "inline-block";
@@ -686,7 +736,13 @@ setInterval(() => {
     // ────────────────
     // 2-10. DOMへ挿入＆ロード
     // ────────────────
-    wrapper.append(editBtn, titleInput, workTypeWrapper, reasonWrapper, actionGroup);
+    wrapper.append(
+      editBtn,
+      titleInput,
+      workTypeWrapper,
+      reasonWrapper,
+      actionGroup
+    );
     textarea.parentElement.appendChild(wrapper);
     loadAndRender(() => {
       if (tempDataRestored && restoredReason) {
