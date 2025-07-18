@@ -92,27 +92,38 @@ fetch(chrome.runtime.getURL("default_config.json"))
   });
 
 // ====== スクロール処理 ======
-// ページが開いたときに実行するよ
-window.addEventListener("load", () => {
-  // 表のスクロール領域を探す
+// 表が出てくるまで待ってからスクロールする関数
+function watchTableAndScroll() {
+  // 表の入れ物を探すよ
   const box = document.querySelector("div.table-scroll-box");
-  if (!box) return; // 見つからなければ何もしない
-
-  // すべての行を集める
-  const rows = box.querySelectorAll("tbody tr");
-  for (const row of rows) {
-    // 勤務状況が書かれたセルをさがす
-    const statusCell = row.querySelector("td.status span");
-    // セルがあり文字が『勤務予定』なら実行
-    if (statusCell && statusCell.textContent.trim() === "勤務予定") {
-      const prev = row.previousElementSibling;
-      if (prev) {
-        // 前の行が表の一番上にくるようにスクロール
-        box.scrollTop = prev.offsetTop - box.offsetTop;
+  if (box) {
+    // もう見つかっていたら行を調べる
+    const rows = box.querySelectorAll("tbody tr");
+    for (const row of rows) {
+      // それぞれの行の勤務状況を確認
+      const statusCell = row.querySelector("td.status span");
+      if (statusCell && statusCell.textContent.trim() === "勤務予定") {
+        const prev = row.previousElementSibling;
+        if (prev) {
+          // 前の行が表の一番上にくるようにスクロール
+          box.scrollTop = prev.offsetTop - box.offsetTop;
+        }
+        break; // 見つけたら終わる
       }
-      break; // 最初に見つかったら終わり
     }
+    return true; // 成功したよ
   }
+  return false; // まだ表が無かったよ
+}
+
+// ページが読み込まれたら監視を始める
+window.addEventListener("load", () => {
+  if (watchTableAndScroll()) return; // すぐ見つかったらおしまい
+  // 表がまだ無いときはDOMの変化を監視する
+  const observer = new MutationObserver(() => {
+    if (watchTableAndScroll()) observer.disconnect();
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
 });
 
 
