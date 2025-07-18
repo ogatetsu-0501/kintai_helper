@@ -2,7 +2,6 @@
 chcp 65001 >nul
 
 REM ===== スクリプトが置いてあるフォルダに移動するよ =====
-REM %~dp0 は「このバッチファイル自身があるフォルダ\」を表すよ
 cd /d "%~dp0"
 
 REM ===== GithubからZIPをダウンロードするURLだよ =====
@@ -31,12 +30,9 @@ if not defined PS_CMD (
     set "USER_PS=%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\powershell.exe"
     if exist "%USER_PS%" set "PS_CMD=%USER_PS%"
 )
-
 if defined PS_CMD (
-    REM PowerShellがあったらExpand-Archiveで解凍するよ
     "%PS_CMD%" -Command "Expand-Archive -Path '%TMP_DIR%\update.zip' -DestinationPath '%TMP_DIR%'"
 ) else (
-    REM なければtar.exeで解凍するよ
     if exist "%SystemRoot%\System32\tar.exe" (
         "%SystemRoot%\System32\tar.exe" -xf "%TMP_DIR%\update.zip" -C "%TMP_DIR%"
     ) else (
@@ -47,19 +43,16 @@ if defined PS_CMD (
 REM ===== 解凍したフォルダの場所を探すよ =====
 for /d %%d in ("%TMP_DIR%\*") do set "UNZIP_DIR=%%~fd"
 
-REM ===== 上書きしたくないファイルを消すよ =====
-REM default_config.json などと同じで、ここに挙げたファイルはコピーされず残るよ
-if exist "%UNZIP_DIR%\update\win\update.bat"    del "%UNZIP_DIR%\update\win\update.bat"
+REM ===== 上書きしたくない3ファイルを解凍先から削除するよ =====
+if exist "%UNZIP_DIR%\update\win\update.bat"      del "%UNZIP_DIR%\update\win\update.bat"
 if exist "%UNZIP_DIR%\update\mac\update.command" del "%UNZIP_DIR%\update\mac\update.command"
-if exist "%UNZIP_DIR%\last_update.txt"          del "%UNZIP_DIR%\last_update.txt"
+if exist "%UNZIP_DIR%\last_update.txt"           del "%UNZIP_DIR%\last_update.txt"
 
 REM ===== 新しいファイルをコピーするよ =====
-REM %~dp0 から見て二階層上が kintai_helper のルートだよ
 set "ROOT_DIR=%~dp0..\.."
-xcopy /E /Y "%UNZIP_DIR%\*" "%ROOT_DIR%"
+xcopy /E /Y /I /R "%UNZIP_DIR%\*" "%ROOT_DIR%"
 
 REM ===== 更新日時を記録するよ =====
-REM kintai_helper\last_update.txt に現在日時を書き込むよ
 echo %DATE% %TIME%> "%ROOT_DIR%\last_update.txt"
 
 REM ===== 一時フォルダを消すよ =====
