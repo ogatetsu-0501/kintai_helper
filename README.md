@@ -17,7 +17,7 @@
 - `update/` : 更新用スクリプトが入ったフォルダ
 
 ## インストール方法
-1. [text](https://github.com/ogatetsu-0501/kintai_helper)このリポジトリを好きな場所に展開します。
+1. [GitHubダウンロードリンク](https://github.com/ogatetsu-0501/kintai_helper)このリポジトリを好きな場所に展開します。
 2. Chromeの拡張機能ページを開き、右上の**デベロッパーモード**をONにします。
 3. 「**パッケージ化されていない拡張機能を読み込む**」を選び、展開したフォルダを指定します。
 4. jinjer勤怠のページを開くと、画面上部にボタンが表示されます。
@@ -25,7 +25,7 @@
 ## 更新手順
 1. 画面右上に更新案内が表示されたら`update`フォルダのスクリプトを実行します。
    - Windows: `update/win/update.exe`
-   - Mac: `update/mac/update.command`
+   - Mac: `update/mac/update.command`(権限付与難易度が高いため、GitHubからのダウンロードを推奨)
    - WindowsでPowerShellが見つからないときは、次の場所を順番に探します。
      1. `C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`
      2. `C:\\Users\\<ユーザー名>\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Windows PowerShell\\powershell.exe`
