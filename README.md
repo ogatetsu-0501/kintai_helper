@@ -24,7 +24,7 @@
 
 ## 更新手順
 1. 画面右上に更新案内が表示されたら`update`フォルダのスクリプトを実行します。
-   - Windows: `update/win/update.bat`
+   - Windows: `update/win/update.exe`
    - Mac: `update/mac/update.command`
    - WindowsでPowerShellが見つからないときは、次の場所を順番に探します。
      1. `C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`

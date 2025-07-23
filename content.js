@@ -62,7 +62,7 @@ Promise.all([
       // Windowsならwinフォルダ、それ以外ならmacフォルダを使うよ
       const folder = isWin ? "win" : "mac";
       // 実行するスクリプト名もOSで分けるよ
-      const script = isWin ? "update.bat" : "update.command";
+      const script = isWin ? "update.exe" : "update.command";
       // 自動でタブを開くのではなく通知を表示するよ
       showUpdateNotice(folder, script);
     }
