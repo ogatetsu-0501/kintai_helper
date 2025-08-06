@@ -75,6 +75,7 @@ let previousVisible = false; // 勤怠実績UIが描画済みか
 let tempSaveInitialized = false; // 一時保存処理を設定したか
 let tempDataRestored = false; // 一時保存データを復元したかどうか
 let restoredReason = ""; // 復元した理由テキスト
+let shiftSelectElement = null; // シフトの選択ボックスを覚えておくよ
 // 初期ボタンの設定を入れる箱をつくるよ
 // デフォルト設定の入れ物を作るよ
 // title: ボタンの上に書く見出し
@@ -164,6 +165,31 @@ setInterval(() => {
   );
   const nameP = document.querySelector("a.dropdown-toggle.username p");
   const dateSpan = document.querySelector("div.floatLeft.jdate span");
+
+  // シフトの選択メニューを探すよ
+  const shiftSel = document.getElementById(
+    "shift_template_collection_for_timecard_cf"
+  );
+  if (shiftSel && shiftSel !== shiftSelectElement) {
+    // 新しく見つけたら覚えておくよ
+    shiftSelectElement = shiftSel;
+    // 前に選んだ値を取り出してみるよ
+    const saved = localStorage.getItem("savedShiftTemplate");
+    if (saved) {
+      // 同じ値の選択肢があるか見るよ
+      const has = Array.from(shiftSel.options).some(
+        (o) => o.value === saved
+      );
+      if (has) {
+        // あったらその値を選ぶよ
+        shiftSel.value = saved;
+      }
+    }
+    // 選び直したときは保存するよ
+    shiftSel.addEventListener("change", () => {
+      localStorage.setItem("savedShiftTemplate", shiftSel.value);
+    });
+  }
 
   // 初期設定がまだ読み込めていなければ何もしないよ
   if (
