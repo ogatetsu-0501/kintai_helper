@@ -189,7 +189,8 @@ setInterval(() => {
         // あったらその値を選ぶよ
         shiftSel.value = saved;
         // 元のサイトの自動入力を動かすために「change」を知らせるよ
-        shiftSel.dispatchEvent(new Event("change"));
+        // まわりにも届くように、泡(バブル)が上に上がるよう設定するよ
+        shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
       }
     }
   }
@@ -264,6 +265,8 @@ setInterval(() => {
           if (selNew) {
             selNew.disabled = false;
             selNew.value = obj.shiftValue || "";
+            // 選び直したことを伝えて、元の仕組みを動かすよ
+            selNew.dispatchEvent(new Event("change", { bubbles: true }));
           }
 
           // 理由テキストは後で上書きするため保持しておく
