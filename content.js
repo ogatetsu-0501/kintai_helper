@@ -173,6 +173,11 @@ setInterval(() => {
   if (shiftSel && shiftSel !== shiftSelectElement) {
     // 新しく見つけたら覚えておくよ
     shiftSelectElement = shiftSel;
+    // 値が変わったときは次に備えて保存するよ
+    shiftSel.addEventListener("change", () => {
+      // いま選んでいる値をしまっておく
+      localStorage.setItem("savedShiftTemplate", shiftSel.value);
+    });
     // 前に選んだ値を取り出してみるよ
     const saved = localStorage.getItem("savedShiftTemplate");
     if (saved) {
@@ -183,12 +188,10 @@ setInterval(() => {
       if (has) {
         // あったらその値を選ぶよ
         shiftSel.value = saved;
+        // 元のサイトの自動入力を動かすために「change」を知らせるよ
+        shiftSel.dispatchEvent(new Event("change"));
       }
     }
-    // 選び直したときは保存するよ
-    shiftSel.addEventListener("change", () => {
-      localStorage.setItem("savedShiftTemplate", shiftSel.value);
-    });
   }
 
   // 初期設定がまだ読み込めていなければ何もしないよ
