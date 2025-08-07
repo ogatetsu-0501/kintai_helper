@@ -171,28 +171,33 @@ setInterval(() => {
     "shift_template_collection_for_timecard_cf"
   );
   if (shiftSel && shiftSel !== shiftSelectElement) {
-    // 新しく見つけたら覚えておくよ
     shiftSelectElement = shiftSel;
-    // 値が変わったときは次に備えて保存するよ
+
+    // ──────────────────────────────────
+    // 【保存】値が変わったときに拡張機能のストレージに保存するよ
+    // ──────────────────────────────────
     shiftSel.addEventListener("change", () => {
-      // いま選んでいる値をしまっておく
-      localStorage.setItem("savedShiftTemplate", shiftSel.value);
+      chrome.storage.local.set({ savedShiftTemplate: shiftSel.value }, () => {
+        // 保存が終わったら必要ならここで何かできるよ
+        // （今回は特に何もしないよ）
+      });
     });
-    // 前に選んだ値を取り出してみるよ
-    const saved = localStorage.getItem("savedShiftTemplate");
-    if (saved) {
-      // 同じ値の選択肢があるか見るよ
-      const has = Array.from(shiftSel.options).some(
-        (o) => o.value === saved
-      );
-      if (has) {
-        // あったらその値を選ぶよ
-        shiftSel.value = saved;
-        // 元のサイトの自動入力を動かすために「change」を知らせるよ
-        // まわりにも届くように、泡(バブル)が上に上がるよう設定するよ
-        shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
+
+    // ──────────────────────────────────
+    // 【復元】拡張機能のストレージから保存した値を読み込むよ
+    // ──────────────────────────────────
+    chrome.storage.local.get("savedShiftTemplate", (data) => {
+      const saved = data.savedShiftTemplate;
+      if (saved) {
+        // もし同じ選択肢があったら、その値を選ぶよ
+        const has = Array.from(shiftSel.options).some((o) => o.value === saved);
+        if (has) {
+          shiftSel.value = saved;
+          // change イベントを発火して、元の自動入力処理を動かすよ
+          shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
       }
-    }
+    });
   }
 
   // 初期設定がまだ読み込めていなければ何もしないよ
