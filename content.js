@@ -87,6 +87,11 @@ fetch(chrome.runtime.getURL("default_config.json"))
 function watchTableAndScroll() {
   const box = document.querySelector("div.table-scroll-box");
   if (box) {
+    // ★ 表の上を画面のいちばん上に合わせるよ
+    box.scrollIntoView({
+      behavior: "auto",
+      block: "start",
+    });
     const rows = box.querySelectorAll("tbody tr");
     for (const row of rows) {
       const statusCell = row.querySelector("td.status span");
