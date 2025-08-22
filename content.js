@@ -444,6 +444,10 @@ setInterval(() => {
       const key = `timecardTemplates_${user}`;
       chrome.storage.local.get([key, `savedShiftTemplate_${user}`], (data) => {
         const list = data[key] || [];
+        // ★ まず前に入ってる自分のテンプレを全部けすよ
+        Array.from(shiftSel.options).forEach((o) => {
+          if (o.value.startsWith("local_template:")) o.remove();
+        });
         // ★ 保存してあるテンプレをぜんぶ足すよ
         list.forEach((t) => addTemplateOption(t.name));
         const saved = data[`savedShiftTemplate_${user}`];
