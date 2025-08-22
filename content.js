@@ -162,6 +162,7 @@ setInterval(() => {
         }
         let observer; // ★ 復元できるまで見張るためのものだよ
         const applyValue = () => {
+          // ★ 欲しいシフトがあるか見てみるよ
           const has = Array.from(shiftSel.options).some(
             (o) => o.value === saved
           );
@@ -169,14 +170,27 @@ setInterval(() => {
             shiftSel.value = saved;
             shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
             shiftTemplateRestored = true;
+            // ★ 復元できたことを知らせるよ
+            console.log("シフトを復元したよ");
             if (observer) observer.disconnect();
+          } else {
+            // ★ まだ選択肢が足りないときの知らせだよ
+            console.log("シフトの選択肢がまだ全部そろってないよ");
           }
         };
         applyValue();
         if (!shiftTemplateRestored) {
+          // ★ シフトの選択肢がそろうまで待つよ
+          console.log("シフトの選択肢が出そろうまで待つよ");
           observer = new MutationObserver(() => {
+            // ★ 選択肢に変化があったらもう一度確認するよ
+            console.log("シフトの選択肢が変わったみたい。もう一度試すね");
             applyValue();
-            if (shiftTemplateRestored && observer) observer.disconnect();
+            if (shiftTemplateRestored && observer) {
+              observer.disconnect();
+              // ★ 復元できたから見張るのを終わるよ
+              console.log("シフトの監視をやめるよ");
+            }
           });
           observer.observe(shiftSel, { childList: true });
         }
