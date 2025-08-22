@@ -71,6 +71,7 @@ let tempSaveInitialized = false;
 let tempDataRestored = false;
 let restoredReason = "";
 let shiftSelectElement = null;
+let templateOptionInitialized = false; // ★ プルダウンに追加したか覚えておくよ
 let defaultConfig = { title: "", workTypes: [], reasons: [] };
 
 // default_config.json 読み込み
@@ -137,8 +138,9 @@ setInterval(() => {
   const shiftSel = document.getElementById(
     "shift_template_collection_for_timecard_cf"
   );
-  if (shiftSel && shiftSel !== shiftSelectElement) {
+  if (shiftSel && !templateOptionInitialized) {
     shiftSelectElement = shiftSel;
+    templateOptionInitialized = true; // ★ これで2回目以降は追加しないよ
 
     // ★ テンプレを復元する関数だよ
     function restoreTemplateInputs(tpl) {
@@ -184,8 +186,11 @@ setInterval(() => {
     // ================================
     let refreshing = false; // 実行中フラグ
     let lastObservedSel = null; // 最後に処理した select を記録
+    let optionsAddedOnce = false; // ★ もう追加したかどうかを覚えるよ
 
     function refreshTemplateOptions(force = false) {
+      // ★ すでに追加していたらもう何もしないよ
+      if (!force && optionsAddedOnce) return;
       if (refreshing) return;
       refreshing = true;
 
@@ -235,6 +240,7 @@ setInterval(() => {
           }
         }
 
+        optionsAddedOnce = true; // ★ これで1回だけ追加したよ
         refreshing = false;
       });
     }
@@ -1047,5 +1053,9 @@ setInterval(() => {
       actionGroup
     );
     textarea.parentElement.appendChild(wrapper);
+  }
+  if (!shiftSel) {
+    templateOptionInitialized = false; // ★ プルダウンがなくなったら忘れるよ
+    shiftSelectElement = null;
   }
 }, 500);
