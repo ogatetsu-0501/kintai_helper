@@ -209,12 +209,22 @@ setInterval(() => {
     listTitle.textContent = "保存したテンプレート";
     listTitle.style.marginTop = "6px";
     listTitle.style.display = "none";
-    wrapper.appendChild(listTitle);
+
     // ★ テンプレをならべる箱だよ
     const templateListDiv = document.createElement("div");
     templateListDiv.style.marginTop = "4px";
     templateListDiv.style.display = "none";
-    wrapper.appendChild(templateListDiv);
+
+    // ★ ここで wrapper ではなく hourWork.parentElement に挿入する
+    if (hourWork && hourWork.parentElement) {
+      const parent = hourWork.parentElement; // ← row_2.ps-container
+      parent.insertBefore(listTitle, hourWork);
+      parent.insertBefore(templateListDiv, hourWork);
+    } else {
+      // フォールバック
+      shiftSel.parentElement.appendChild(listTitle);
+      shiftSel.parentElement.appendChild(templateListDiv);
+    }
 
     // ★ 保存したテンプレートを画面に出すよ
     function renderTemplateList() {
