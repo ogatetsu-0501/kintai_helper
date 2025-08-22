@@ -239,11 +239,17 @@ setInterval(() => {
       const list = data[key] || [];
       list.forEach((t) => addTemplateOption(t.name));
       const saved = data[`savedShiftTemplate_${user}`];
-      if (saved) {
-        const has = Array.from(shiftSel.options).some(
+      // ★ 保存されたテンプレートが本当にあるかチェックするよ
+      const existsInStorage =
+        saved &&
+        (!saved.startsWith("local_template:") ||
+          list.some((t) => `local_template:${t.name}` === saved));
+      if (existsInStorage) {
+        // ★ 選べるテンプレートが見つかったときだけ自動で選ぶよ
+        const hasOption = Array.from(shiftSel.options).some(
           (o) => o.value === saved
         );
-        if (has) {
+        if (hasOption) {
           shiftSel.value = saved;
           shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
         }
