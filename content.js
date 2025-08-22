@@ -140,7 +140,7 @@ setInterval(() => {
   if (shiftSel && shiftSel !== shiftSelectElement) {
     shiftSelectElement = shiftSel;
 
-    // ★ テンプレートを復元する関数だよ
+    // ★ テンプレを復元する関数だよ
     function restoreTemplateInputs(tpl) {
       const root = shiftSel.closest(".hour-work");
       if (!root) return;
@@ -162,9 +162,8 @@ setInterval(() => {
       });
     }
 
-    // ★ テンプレートの選択肢を増やす関数だよ
+    // ★ テンプレの選択肢を増やす関数だよ
     function addTemplateOption(name) {
-      // ★ 今あるセレクトをもう一度さがすよ
       const sel = document.getElementById(
         "shift_template_collection_for_timecard_cf"
       );
@@ -176,10 +175,88 @@ setInterval(() => {
         opt.value = value;
         opt.textContent = name;
         sel.appendChild(opt);
-        // ★ ちゃんと追加できたか確かめるよ
         console.log("テンプレ追加:", name);
       }
     }
+
+    // ================================
+    // テンプレオプションのリフレッシュ（無限ループ防止版）
+    // ================================
+    let refreshing = false; // 実行中フラグ
+    let lastObservedSel = null; // 最後に処理した select を記録
+
+    function refreshTemplateOptions(force = false) {
+      if (refreshing) return;
+      refreshing = true;
+
+      const shiftSel = document.getElementById(
+        "shift_template_collection_for_timecard_cf"
+      );
+      if (!shiftSel) {
+        refreshing = false;
+        return;
+      }
+
+      // DOM が差し替えられて新しい select になった場合のみ処理
+      if (!force && lastObservedSel === shiftSel) {
+        refreshing = false;
+        return;
+      }
+      lastObservedSel = shiftSel;
+
+      const user = getCurrentUserName();
+      const key = `timecardTemplates_${user}`;
+      chrome.storage.local.get([key, `savedShiftTemplate_${user}`], (data) => {
+        const list = data[key] || [];
+
+        // 現在の option value 一覧を取得
+        const existingValues = Array.from(shiftSel.options).map((o) => o.value);
+
+        // 保存してあるテンプレートを追加（重複防止）
+        list.forEach((t) => {
+          const value = `local_template:${t.name}`;
+          if (!existingValues.includes(value)) {
+            const opt = document.createElement("option");
+            opt.value = value;
+            opt.textContent = t.name;
+            shiftSel.appendChild(opt);
+          }
+        });
+
+        // 前に選んでいたテンプレートがあれば復元
+        const saved = data[`savedShiftTemplate_${user}`];
+        if (saved) {
+          const hasOption = Array.from(shiftSel.options).some(
+            (o) => o.value === saved
+          );
+          if (hasOption) {
+            shiftSel.value = saved;
+            shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        }
+
+        refreshing = false;
+      });
+    }
+
+    // ================================
+    // セレクトの監視
+    // ================================
+    function observeShiftSelect() {
+      const observer = new MutationObserver(() => {
+        const sel = document.getElementById(
+          "shift_template_collection_for_timecard_cf"
+        );
+        if (!sel) return;
+        refreshTemplateOptions(); // DOMが差し替えられた時に 1 回だけ復元
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    // 初期化
+    refreshTemplateOptions(true); // 初回は強制実行
+    observeShiftSelect();
 
     // ★ 今の入力をしまうボタンを作るよ
     const saveBtn = document.createElement("button");
