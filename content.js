@@ -164,15 +164,20 @@ setInterval(() => {
 
     // ★ テンプレートの選択肢を増やす関数だよ
     function addTemplateOption(name) {
-      const value = `local_template:${name}`;
-      const exists = Array.from(shiftSel.options).some(
-        (o) => o.value === value
+      // ★ 今あるセレクトをもう一度さがすよ
+      const sel = document.getElementById(
+        "shift_template_collection_for_timecard_cf"
       );
+      if (!sel) return;
+      const value = `local_template:${name}`;
+      const exists = Array.from(sel.options).some((o) => o.value === value);
       if (!exists) {
         const opt = document.createElement("option");
         opt.value = value;
         opt.textContent = name;
-        shiftSel.appendChild(opt);
+        sel.appendChild(opt);
+        // ★ ちゃんと追加できたか確かめるよ
+        console.log("テンプレ追加:", name);
       }
     }
 
@@ -233,10 +238,16 @@ setInterval(() => {
               const list2 = res2[key] || [];
               const newList = list2.filter((t) => t.name !== tpl.name);
               chrome.storage.local.set({ [key]: newList }, () => {
-                // ★ 選ぶところからも消しておくよ
-                Array.from(shiftSel.options).forEach((o) => {
-                  if (o.value === `local_template:${tpl.name}`) o.remove();
-                });
+                // ★ 今あるセレクトをもう一度さがすよ
+                const sel = document.getElementById(
+                  "shift_template_collection_for_timecard_cf"
+                );
+                if (sel) {
+                  // ★ 選ぶところからも消しておくよ
+                  Array.from(sel.options).forEach((o) => {
+                    if (o.value === `local_template:${tpl.name}`) o.remove();
+                  });
+                }
                 renderTemplateList();
               });
             });
@@ -267,7 +278,13 @@ setInterval(() => {
     saveBtn.addEventListener("click", () => {
       const name = prompt("テンプレートの名前");
       if (!name) return;
-      const root = shiftSel.closest(".hour-work");
+      // ★ 今あるセレクトをもう一度さがすよ
+      const sel = document.getElementById(
+        "shift_template_collection_for_timecard_cf"
+      );
+      if (!sel) return;
+      // ★ セレクトのまわりにある入力欄の箱を見つけるよ
+      const root = sel.closest(".hour-work");
       if (!root) return;
       const inputs = Array.from(root.querySelectorAll("input"));
       const inputData = inputs.map((inp) => ({
@@ -296,8 +313,13 @@ setInterval(() => {
 
     // ★ 休憩の入力欄が無かったら作る関数だよ
     function ensureBreakBlock() {
+      // ★ 今あるセレクトをもう一度さがすよ
+      const sel = document.getElementById(
+        "shift_template_collection_for_timecard_cf"
+      );
+      if (!sel) return;
       // ★ 勤務時間の箱をさがすよ
-      const root = shiftSel.closest(".hour-work");
+      const root = sel.closest(".hour-work");
       if (!root) return;
       // ★ すでに休憩の箱があるか見るよ
       let outer = root.querySelector(".break-times.time_card_container");
@@ -397,6 +419,8 @@ setInterval(() => {
     shiftSel.addEventListener("change", () => {
       const user = getCurrentUserName();
       const val = shiftSel.value;
+      // ★ どのテンプレをえらんだか文字で出すよ
+      console.log("選んだテンプレ:", val);
       chrome.storage.local.set(
         { [`savedShiftTemplate_${user}`]: val },
         () => {}
@@ -421,6 +445,8 @@ setInterval(() => {
       list.forEach((t) => addTemplateOption(t.name));
       // ★ ここではテンプレの選択肢だけ増やすよ
       const saved = data[`savedShiftTemplate_${user}`];
+      // ★ 保存されてたテンプレの名前を出すよ
+      console.log("保存されてたテンプレ:", saved);
       // ★ 保存されたテンプレートが本当にあるかチェックするよ
       const existsInStorage =
         saved &&
@@ -431,9 +457,14 @@ setInterval(() => {
         const hasOption = Array.from(shiftSel.options).some(
           (o) => o.value === saved
         );
+        // ★ 選択肢にあるかどうかを出すよ
+        console.log("選択肢にあるかな?:", hasOption);
         if (hasOption) {
           shiftSel.value = saved;
           shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
+          // ★ 無かったら警告を出すよ
+          console.warn("保存されたテンプレが選択肢にないよ");
         }
       }
     });
