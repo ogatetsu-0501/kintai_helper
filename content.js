@@ -192,11 +192,17 @@ setInterval(() => {
     applyDefaultButtonStyle(toggleListBtn);
     toggleListBtn.style.marginBottom = "6px";
     // ★ ボタンをどこに置くか決めるよ
-    const wrapper =
-      shiftSel.closest(".row_1") || shiftSel.parentElement.parentElement;
-    wrapper.appendChild(saveBtn);
-    wrapper.appendChild(toggleListBtn);
-
+    const hourWork = shiftSel.closest(".oneColumn.hour-work");
+    if (hourWork && hourWork.parentElement) {
+      const parent = hourWork.parentElement; // ← row_2.ps-container
+      // 親要素の直下、hour-work の直前に挿入
+      parent.insertBefore(saveBtn, hourWork);
+      parent.insertBefore(toggleListBtn, hourWork);
+    } else {
+      // 念のためフォールバック（これまで通り）
+      shiftSel.parentElement.appendChild(saveBtn);
+      shiftSel.parentElement.appendChild(toggleListBtn);
+    }
     // ★ 保存したテンプレを見せる準備だよ
     // ★ みんなのテンプレのタイトルだよ
     const listTitle = document.createElement("div");
