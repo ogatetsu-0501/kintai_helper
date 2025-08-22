@@ -214,6 +214,93 @@ setInterval(() => {
       });
     });
 
+    // ★ 休憩の入力欄が無かったら作る関数だよ
+    function ensureBreakBlock() {
+      // ★ 勤務時間の箱をさがすよ
+      const root = shiftSel.closest(".hour-work");
+      if (!root) return;
+      // ★ もう休憩欄があったら何もしないよ
+      const exists = root.querySelector("#pScroll");
+      if (exists) return;
+      // ★ 休憩全体の箱をつくるよ
+      const wrap = document.createElement("div");
+      wrap.id = "pScroll";
+      wrap.className = "oneColumn time-break jnormal";
+      // ★ タイトルの箱をつくるよ
+      const titleDiv = document.createElement("div");
+      titleDiv.className = "break-times-title";
+      const titleSpan = document.createElement("span");
+      titleSpan.className = "title ftlg12 FONT666666 type_break_meal_1";
+      titleSpan.textContent = "休憩1";
+      const radioWrap = document.createElement("div");
+      radioWrap.className = "radioCheckWrapper ps10 break_time";
+      radioWrap.style.height = "10px";
+      titleSpan.appendChild(radioWrap);
+      titleDiv.appendChild(titleSpan);
+      wrap.appendChild(titleDiv);
+      // ★ 入力欄の箱をつくるよ
+      const dataDiv = document.createElement("div");
+      dataDiv.className = "break-times-data";
+      // ★ 休憩開始の時間を入れる箱だよ
+      const h1 = document.createElement("input");
+      h1.type = "number";
+      h1.min = "0";
+      h1.max = "48";
+      h1.className = "ftlg12 FONT666666 jnormal hour-1-break-1";
+      dataDiv.appendChild(h1);
+      const sp1 = document.createElement("span");
+      sp1.className = "ftlg14 FONT666666";
+      sp1.textContent = "：";
+      dataDiv.appendChild(sp1);
+      const m1 = document.createElement("input");
+      m1.type = "number";
+      m1.min = "0";
+      m1.max = "59";
+      m1.className = "ftlg12 FONT666666 jnormal minute-1-break-1";
+      dataDiv.appendChild(m1);
+      const sp2 = document.createElement("span");
+      sp2.className = "ftlg10 FONT666666";
+      sp2.innerHTML = "&nbsp;〜&nbsp;";
+      dataDiv.appendChild(sp2);
+      // ★ 休憩おわりの時間を入れる箱だよ
+      const h2 = document.createElement("input");
+      h2.type = "number";
+      h2.min = "0";
+      h2.max = "48";
+      h2.className = "ftlg12 FONT666666 jnormal hour-2-break-1";
+      dataDiv.appendChild(h2);
+      const sp3 = document.createElement("span");
+      sp3.className = "ftlg14 FONT666666";
+      sp3.textContent = "：";
+      dataDiv.appendChild(sp3);
+      const m2 = document.createElement("input");
+      m2.type = "number";
+      m2.min = "0";
+      m2.max = "59";
+      m2.className = "ftlg12 FONT666666 jnormal minute-2-break-1";
+      dataDiv.appendChild(m2);
+      // ★ 入力を消すためのボタンだよ
+      const link = document.createElement("a");
+      link.href = "javascript:void(0);";
+      link.className = "shiftDelete";
+      link.setAttribute(
+        "onclick",
+        "AppUtils.clearInputValue(this, 'break-times-data');"
+      );
+      const img = document.createElement("img");
+      img.src = "/assets/common/img/icon/icon_close.svg";
+      img.width = 10;
+      img.height = 10;
+      link.appendChild(img);
+      dataDiv.appendChild(link);
+      wrap.appendChild(dataDiv);
+      // ★ レイアウトを整えるための箱だよ
+      const clearDiv = document.createElement("div");
+      clearDiv.className = "clearfix";
+      wrap.appendChild(clearDiv);
+      root.appendChild(wrap);
+    }
+
     // ★ セレクトが変わったときの動きだよ
     shiftSel.addEventListener("change", () => {
       const user = getCurrentUserName();
@@ -231,6 +318,8 @@ setInterval(() => {
           if (tpl) restoreTemplateInputs(tpl.data);
         });
       }
+      // ★ 休憩欄がなかったらここで作るよ
+      ensureBreakBlock();
     });
 
     const user = getCurrentUserName();
