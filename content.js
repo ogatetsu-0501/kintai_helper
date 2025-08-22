@@ -71,6 +71,8 @@ let tempSaveInitialized = false;
 let tempDataRestored = false;
 let restoredReason = "";
 let shiftSelectElement = null;
+// ★ シフトの復元が終わったかどうかを覚えておくよ
+let shiftTemplateRestored = false;
 let defaultConfig = { title: "", workTypes: [], reasons: [] };
 
 // default_config.json 読み込み
@@ -137,26 +139,49 @@ setInterval(() => {
   const shiftSel = document.getElementById(
     "shift_template_collection_for_timecard_cf"
   );
-  if (shiftSel && shiftSel !== shiftSelectElement) {
-    shiftSelectElement = shiftSel;
-    shiftSel.addEventListener("change", () => {
+  if (shiftSel) {
+    // ★ 新しくシフトのプルダウンを見つけたらイベントを付けるよ
+    if (shiftSel !== shiftSelectElement) {
+      shiftSelectElement = shiftSel;
+      shiftSel.addEventListener("change", () => {
+        const user = getCurrentUserName();
+        chrome.storage.local.set(
+          { [`savedShiftTemplate_${user}`]: shiftSel.value },
+          () => {}
+        );
+      });
+    }
+    // ★ 保存されたシフトをまだ復元していなければやってみるよ
+    if (!shiftTemplateRestored) {
       const user = getCurrentUserName();
-      chrome.storage.local.set(
-        { [`savedShiftTemplate_${user}`]: shiftSel.value },
-        () => {}
-      );
-    });
-    const user = getCurrentUserName();
-    chrome.storage.local.get(`savedShiftTemplate_${user}`, (data) => {
-      const saved = data[`savedShiftTemplate_${user}`];
-      if (saved) {
-        const has = Array.from(shiftSel.options).some((o) => o.value === saved);
-        if (has) {
-          shiftSel.value = saved;
-          shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
+      chrome.storage.local.get(`savedShiftTemplate_${user}`, (data) => {
+        const saved = data[`savedShiftTemplate_${user}`];
+        if (!saved) {
+          shiftTemplateRestored = true;
+          return;
         }
-      }
-    });
+        let observer; // ★ 復元できるまで見張るためのものだよ
+        const applyValue = () => {
+          const has = Array.from(shiftSel.options).some(
+            (o) => o.value === saved
+          );
+          if (has) {
+            shiftSel.value = saved;
+            shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
+            shiftTemplateRestored = true;
+            if (observer) observer.disconnect();
+          }
+        };
+        applyValue();
+        if (!shiftTemplateRestored) {
+          observer = new MutationObserver(() => {
+            applyValue();
+            if (shiftTemplateRestored && observer) observer.disconnect();
+          });
+          observer.observe(shiftSel, { childList: true });
+        }
+      });
+    }
   }
 
   if (
