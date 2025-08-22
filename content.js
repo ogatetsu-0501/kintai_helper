@@ -220,11 +220,17 @@ setInterval(() => {
       const root = shiftSel.closest(".hour-work");
       if (!root) return;
       // ★ すでに休憩の箱があるか見るよ
-      const exists = root.querySelector(".break-times.time_card_container");
-      if (exists) return;
-      // ★ 休憩を包む外側の箱をつくるよ
-      const outer = document.createElement("div");
-      outer.className = "break-times time_card_container";
+      let outer = root.querySelector(".break-times.time_card_container");
+      // ★ 箱があって中に入力欄があるなら何もしないよ
+      if (outer && outer.querySelector(".break-times-data")) return;
+      // ★ 箱がなければ新しく作るよ
+      if (!outer) {
+        outer = document.createElement("div");
+        outer.className = "break-times time_card_container";
+      } else {
+        // ★ 箱だけあって中身が空なら中身をきれいにするよ
+        outer.innerHTML = "";
+      }
       // ★ 本物の休憩の箱をつくるよ
       const wrap = document.createElement("div");
       wrap.id = "pScroll";
