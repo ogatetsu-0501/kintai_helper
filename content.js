@@ -438,36 +438,41 @@ setInterval(() => {
       ensureBreakBlock();
     });
 
-    const user = getCurrentUserName();
-    const key = `timecardTemplates_${user}`;
-    chrome.storage.local.get([key, `savedShiftTemplate_${user}`], (data) => {
-      const list = data[key] || [];
-      list.forEach((t) => addTemplateOption(t.name));
-      // ★ ここではテンプレの選択肢だけ増やすよ
-      const saved = data[`savedShiftTemplate_${user}`];
-      // ★ 保存されてたテンプレの名前を出すよ
-      console.log("保存されてたテンプレ:", saved);
-      // ★ 保存されたテンプレートが本当にあるかチェックするよ
-      const existsInStorage =
-        saved &&
-        (!saved.startsWith("local_template:") ||
-          list.some((t) => `local_template:${t.name}` === saved));
-      if (existsInStorage) {
-        // ★ 選べるテンプレートが見つかったときだけ自動で選ぶよ
+    // ★ えらべるテンプレを新しくする関数だよ
+    function refreshTemplateOptions() {
+      const user = getCurrentUserName();
+      const key = `timecardTemplates_${user}`;
+      chrome.storage.local.get([key, `savedShiftTemplate_${user}`], (data) => {
+        const list = data[key] || [];
+        // ★ 保存してあるテンプレをぜんぶ足すよ
+        list.forEach((t) => addTemplateOption(t.name));
+        const saved = data[`savedShiftTemplate_${user}`];
+        // ★ 前にえらんでいたテンプレの名前だよ
+        console.log("保存されてたテンプレ:", saved);
+        if (!saved) return;
+        // ★ セレクトにそのテンプレがあるか調べるよ
         const hasOption = Array.from(shiftSel.options).some(
           (o) => o.value === saved
         );
-        // ★ 選択肢にあるかどうかを出すよ
         console.log("選択肢にあるかな?:", hasOption);
         if (hasOption) {
+          // ★ あったら自分でそのテンプレを選ぶよ
           shiftSel.value = saved;
           shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
         } else {
-          // ★ 無かったら警告を出すよ
+          // ★ ないときは注意を出すよ
           console.warn("保存されたテンプレが選択肢にないよ");
         }
-      }
+      });
+    }
+
+    // ★ まずは一回だけ新しくするよ
+    refreshTemplateOptions();
+    // ★ 選択肢が書きかわったらまた新しくするよ
+    const optionObserver = new MutationObserver(() => {
+      refreshTemplateOptions();
     });
+    optionObserver.observe(shiftSel, { childList: true });
   }
 
   if (
