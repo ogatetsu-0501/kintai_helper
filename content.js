@@ -316,9 +316,29 @@ setInterval(() => {
             "shift_template_collection_for_timecard_cf"
           );
           if (selNew) {
-            selNew.disabled = false;
-            selNew.value = obj.shiftValue || "";
-            selNew.dispatchEvent(new Event("change", { bubbles: true }));
+            // ★ ローカルストレージからテンプレートを読み込むよ
+            const user = getCurrentUserName();
+            const key = `timecardTemplates_${user}`;
+            chrome.storage.local.get([key], (res) => {
+              const list = res[key] || [];
+              list.forEach((t) => {
+                const value = `local_template:${t.name}`;
+                const exists = Array.from(selNew.options).some(
+                  (o) => o.value === value
+                );
+                if (!exists) {
+                  // ★ 新しい選択肢をつくるよ
+                  const opt = document.createElement("option");
+                  opt.value = value;
+                  opt.textContent = t.name;
+                  selNew.appendChild(opt);
+                }
+              });
+              // ★ 選択肢を入れたあとで自動で選ぶよ
+              selNew.disabled = false;
+              selNew.value = obj.shiftValue || "";
+              selNew.dispatchEvent(new Event("change", { bubbles: true }));
+            });
           }
           restoredReason = obj.reason || "";
           const textarea = document.getElementById("update_reason");
