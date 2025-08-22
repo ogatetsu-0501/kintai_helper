@@ -139,18 +139,110 @@ setInterval(() => {
   );
   if (shiftSel && shiftSel !== shiftSelectElement) {
     shiftSelectElement = shiftSel;
+
+    // ★ テンプレートを復元する関数だよ
+    function restoreTemplateInputs(tpl) {
+      const root = shiftSel.closest(".hour-work");
+      if (!root) return;
+      const inputs = Array.from(root.querySelectorAll("input"));
+      tpl.inputs.forEach((v, i) => {
+        const inp = inputs[i];
+        if (!inp) return;
+        if (inp.type === "radio" || inp.type === "checkbox") {
+          inp.checked = v.checked;
+        } else {
+          inp.value = v.value;
+        }
+      });
+      const selects = Array.from(root.querySelectorAll("select")).filter(
+        (s) => s.id !== "shift_template_collection_for_timecard_cf"
+      );
+      tpl.selects.forEach((val, i) => {
+        if (selects[i]) selects[i].value = val;
+      });
+    }
+
+    // ★ テンプレートの選択肢を増やす関数だよ
+    function addTemplateOption(name) {
+      const value = `local_template:${name}`;
+      const exists = Array.from(shiftSel.options).some(
+        (o) => o.value === value
+      );
+      if (!exists) {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = name;
+        shiftSel.appendChild(opt);
+      }
+    }
+
+    // ★ 今の入力を保存するボタンを作るよ
+    const saveBtn = document.createElement("button");
+    saveBtn.textContent = "今の入力を保存";
+    applyDefaultButtonStyle(saveBtn);
+    saveBtn.style.marginBottom = "6px";
+    const wrapper = shiftSel.parentElement.parentElement;
+    wrapper.insertBefore(saveBtn, shiftSel.parentElement);
+
+    // ★ ボタンを押したときの動きだよ
+    saveBtn.addEventListener("click", () => {
+      const name = prompt("テンプレートの名前");
+      if (!name) return;
+      const root = shiftSel.closest(".hour-work");
+      if (!root) return;
+      const inputs = Array.from(root.querySelectorAll("input"));
+      const inputData = inputs.map((inp) => ({
+        type: inp.type,
+        checked: inp.checked,
+        value: inp.value,
+      }));
+      const selects = Array.from(root.querySelectorAll("select"))
+        .filter((s) => s.id !== "shift_template_collection_for_timecard_cf")
+        .map((s) => s.value);
+      const templateData = { inputs: inputData, selects };
+      const user = getCurrentUserName();
+      const key = `timecardTemplates_${user}`;
+      chrome.storage.local.get([key], (res) => {
+        const list = res[key] || [];
+        const exist = list.find((t) => t.name === name);
+        if (exist) exist.data = templateData;
+        else list.push({ name, data: templateData });
+        chrome.storage.local.set({ [key]: list }, () => {
+          addTemplateOption(name);
+          alert("テンプレートを保存しました");
+        });
+      });
+    });
+
+    // ★ セレクトが変わったときの動きだよ
     shiftSel.addEventListener("change", () => {
       const user = getCurrentUserName();
+      const val = shiftSel.value;
       chrome.storage.local.set(
-        { [`savedShiftTemplate_${user}`]: shiftSel.value },
+        { [`savedShiftTemplate_${user}`]: val },
         () => {}
       );
+      if (val.startsWith("local_template:")) {
+        const name = val.replace("local_template:", "");
+        const key = `timecardTemplates_${user}`;
+        chrome.storage.local.get([key], (res) => {
+          const list = res[key] || [];
+          const tpl = list.find((t) => t.name === name);
+          if (tpl) restoreTemplateInputs(tpl.data);
+        });
+      }
     });
+
     const user = getCurrentUserName();
-    chrome.storage.local.get(`savedShiftTemplate_${user}`, (data) => {
+    const key = `timecardTemplates_${user}`;
+    chrome.storage.local.get([key, `savedShiftTemplate_${user}`], (data) => {
+      const list = data[key] || [];
+      list.forEach((t) => addTemplateOption(t.name));
       const saved = data[`savedShiftTemplate_${user}`];
       if (saved) {
-        const has = Array.from(shiftSel.options).some((o) => o.value === saved);
+        const has = Array.from(shiftSel.options).some(
+          (o) => o.value === saved
+        );
         if (has) {
           shiftSel.value = saved;
           shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
