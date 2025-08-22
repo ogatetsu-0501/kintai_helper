@@ -219,10 +219,13 @@ setInterval(() => {
       // ★ 勤務時間の箱をさがすよ
       const root = shiftSel.closest(".hour-work");
       if (!root) return;
-      // ★ もう休憩欄があったら何もしないよ
-      const exists = root.querySelector("#pScroll");
+      // ★ すでに休憩の箱があるか見るよ
+      const exists = root.querySelector(".break-times.time_card_container");
       if (exists) return;
-      // ★ 休憩全体の箱をつくるよ
+      // ★ 休憩を包む外側の箱をつくるよ
+      const outer = document.createElement("div");
+      outer.className = "break-times time_card_container";
+      // ★ 本物の休憩の箱をつくるよ
       const wrap = document.createElement("div");
       wrap.id = "pScroll";
       wrap.className = "oneColumn time-break jnormal";
@@ -298,7 +301,10 @@ setInterval(() => {
       const clearDiv = document.createElement("div");
       clearDiv.className = "clearfix";
       wrap.appendChild(clearDiv);
-      root.appendChild(wrap);
+      // ★ 外側の箱に休憩の箱を入れるよ
+      outer.appendChild(wrap);
+      // ★ 出来上がった休憩の箱を画面に出すよ
+      root.appendChild(outer);
     }
 
     // ★ セレクトが変わったときの動きだよ
