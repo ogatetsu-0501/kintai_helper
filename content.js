@@ -176,13 +176,92 @@ setInterval(() => {
       }
     }
 
-    // ★ 今の入力を保存するボタンを作るよ
+    // ★ 今の入力をしまうボタンを作るよ
     const saveBtn = document.createElement("button");
     saveBtn.textContent = "今の入力を保存";
     applyDefaultButtonStyle(saveBtn);
     saveBtn.style.marginBottom = "6px";
-    const wrapper = shiftSel.parentElement.parentElement;
-    wrapper.insertBefore(saveBtn, shiftSel.parentElement);
+    // ★ テンプレ一覧をひらくボタンもつくるよ
+    const toggleListBtn = document.createElement("button");
+    toggleListBtn.textContent = "テンプレ一覧表示";
+    applyDefaultButtonStyle(toggleListBtn);
+    toggleListBtn.style.marginBottom = "6px";
+    // ★ ボタンをどこに置くか決めるよ
+    const wrapper =
+      shiftSel.closest(".row_1") || shiftSel.parentElement.parentElement;
+    wrapper.appendChild(saveBtn);
+    wrapper.appendChild(toggleListBtn);
+
+    // ★ 保存したテンプレを見せる準備だよ
+    // ★ みんなのテンプレのタイトルだよ
+    const listTitle = document.createElement("div");
+    listTitle.textContent = "保存したテンプレート";
+    listTitle.style.marginTop = "6px";
+    listTitle.style.display = "none";
+    wrapper.appendChild(listTitle);
+    // ★ テンプレをならべる箱だよ
+    const templateListDiv = document.createElement("div");
+    templateListDiv.style.marginTop = "4px";
+    templateListDiv.style.display = "none";
+    wrapper.appendChild(templateListDiv);
+
+    // ★ 保存したテンプレートを画面に出すよ
+    function renderTemplateList() {
+      // ★ いったん中身を空っぽにするよ
+      templateListDiv.innerHTML = "";
+      const user = getCurrentUserName();
+      const key = `timecardTemplates_${user}`;
+      chrome.storage.local.get([key], (res) => {
+        const list = res[key] || [];
+        list.forEach((tpl) => {
+          // ★ 1つぶんの行を作るよ
+          const row = document.createElement("div");
+          row.style.display = "flex";
+          row.style.alignItems = "center";
+          // ★ 名前を書いておくよ
+          const nameSpan = document.createElement("span");
+          nameSpan.textContent = tpl.name;
+          nameSpan.style.flex = "1";
+          // ★ 消すためのボタンだよ
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "削除";
+          applyDefaultButtonStyle(delBtn);
+          delBtn.style.marginLeft = "6px";
+          delBtn.addEventListener("click", () => {
+            // ★ このテンプレだけ取り除くよ
+            chrome.storage.local.get([key], (res2) => {
+              const list2 = res2[key] || [];
+              const newList = list2.filter((t) => t.name !== tpl.name);
+              chrome.storage.local.set({ [key]: newList }, () => {
+                // ★ 選ぶところからも消しておくよ
+                Array.from(shiftSel.options).forEach((o) => {
+                  if (o.value === `local_template:${tpl.name}`) o.remove();
+                });
+                renderTemplateList();
+              });
+            });
+          });
+          row.appendChild(nameSpan);
+          row.appendChild(delBtn);
+          templateListDiv.appendChild(row);
+        });
+      });
+    }
+
+    // ★ テンプレ一覧ボタンを押したら見せたり隠したりするよ
+    toggleListBtn.addEventListener("click", () => {
+      const hidden = templateListDiv.style.display === "none";
+      if (hidden) {
+        renderTemplateList();
+        listTitle.style.display = "block";
+        templateListDiv.style.display = "block";
+        toggleListBtn.textContent = "一覧を隠す";
+      } else {
+        listTitle.style.display = "none";
+        templateListDiv.style.display = "none";
+        toggleListBtn.textContent = "テンプレ一覧表示";
+      }
+    });
 
     // ★ ボタンを押したときの動きだよ
     saveBtn.addEventListener("click", () => {
@@ -209,6 +288,7 @@ setInterval(() => {
         else list.push({ name, data: templateData });
         chrome.storage.local.set({ [key]: list }, () => {
           addTemplateOption(name);
+          renderTemplateList();
           alert("テンプレートを保存しました");
         });
       });
@@ -339,6 +419,7 @@ setInterval(() => {
     chrome.storage.local.get([key, `savedShiftTemplate_${user}`], (data) => {
       const list = data[key] || [];
       list.forEach((t) => addTemplateOption(t.name));
+      // ★ ここではテンプレの選択肢だけ増やすよ
       const saved = data[`savedShiftTemplate_${user}`];
       // ★ 保存されたテンプレートが本当にあるかチェックするよ
       const existsInStorage =
