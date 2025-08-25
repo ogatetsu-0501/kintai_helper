@@ -73,6 +73,8 @@ let restoredReason = "";
 let shiftSelectElement = null;
 // ★ シフトの復元が終わったかどうかを覚えておくよ
 let shiftTemplateRestored = false;
+// ★ カスタムテンプレートで一度だけ復元をスキップするためのしるしだよ
+let skipRestoreOnce = false;
 let defaultConfig = { title: "", workTypes: [], reasons: [] };
 
 // ★ 自分で作るテンプレートを見分けるためのしるしだよ
@@ -200,8 +202,14 @@ setInterval(() => {
     // ★ 新しいプルダウンを見つけたら準備をやりなおすよ
     if (shiftSel !== shiftSelectElement) {
       shiftSelectElement = shiftSel;
-      // ★ 消えていたときにリセットした復元フラグをもう一度使うよ
-      shiftTemplateRestored = false;
+      // ★ カスタムテンプレートで新しいプルダウンができたかもしれないよ
+      if (skipRestoreOnce) {
+        // ★ 一度だけ復元をリセットしないで済ませるよ
+        skipRestoreOnce = false; // ★ 使い終わったら元にもどすよ
+      } else {
+        // ★ 消えていたときにリセットした復元フラグをもう一度使うよ
+        shiftTemplateRestored = false;
+      }
       shiftSel.addEventListener("change", () => {
         const user = getCurrentUserName();
         chrome.storage.local.set(
@@ -233,6 +241,8 @@ setInterval(() => {
             pScroll.append(...tmp.childNodes); // ★ テンプレートの中身を入れるよ
             // ★ 今使っているプルダウンを覚えておくよ
             shiftSelectElement = shiftSel;
+            // ★ 次の見回りで復元をリセットしないようにしておくよ
+            skipRestoreOnce = true;
             // ★ 復元はもう終わったことにしておくよ
             shiftTemplateRestored = true;
           }
