@@ -99,9 +99,9 @@ function populateCustomTemplates(sel) {
 
 // ★ シフトを保存するボタンを作るよ
 function setupTemplateRegisterButton() {
-  const pScroll = document.getElementById("pScroll");
-  // ★ 表がまだなかったら何もしないよ
-  if (!pScroll) return;
+  const workTable = document.querySelector("div.oneColumn.hour-work");
+  // ★ 勤務時間の表を探すよ
+  if (!workTable) return;
   // ★ もうボタンがあったら新しく作らないよ
   if (document.getElementById("template-register-button")) return;
   const container = document.createElement("div");
@@ -111,7 +111,7 @@ function setupTemplateRegisterButton() {
   applyDefaultButtonStyle(btn);
   container.appendChild(btn);
   // ★ 表のすぐ上にボタンを置くよ
-  pScroll.parentNode.insertBefore(container, pScroll);
+  workTable.parentNode.insertBefore(container, workTable);
   btn.addEventListener("click", () => {
     // ★ 保存するときの名前をきくよ
     const name = prompt("テンプレートの名前を入れてね");
@@ -121,7 +121,7 @@ function setupTemplateRegisterButton() {
       localStorage.getItem("myShiftTemplates") || "{}"
     );
     // ★ プルダウンが入っている見出しをコピーから消すよ
-    const clone = pScroll.cloneNode(true);
+    const clone = workTable.cloneNode(true);
     const header = clone.querySelector(":scope > div.mb30.tampSelect");
     if (header) header.remove();
     templates[name] = clone.innerHTML;
@@ -223,10 +223,11 @@ setInterval(() => {
             localStorage.getItem("myShiftTemplates") || "{}"
           );
           const html = templates[val.substring(CUSTOM_TEMPLATE_PREFIX.length)];
-          const pScroll = document.getElementById("pScroll");
-          if (pScroll && html !== undefined) {
+          const workTable = document.querySelector("div.oneColumn.hour-work");
+          // ★ 勤務時間の表をもういちど探すよ
+          if (workTable && html !== undefined) {
             // ★ 「テンプレートを選択」と書いてある箱を取っておくよ
-            const keepHeader = pScroll.querySelector(
+            const keepHeader = workTable.querySelector(
               ":scope > div.mb30.tampSelect"
             );
             // ★ 新しい表を入れるための箱をつくるよ
@@ -236,9 +237,9 @@ setInterval(() => {
             const tmpHeader = tmp.querySelector(":scope > div.mb30.tampSelect");
             if (tmpHeader) tmpHeader.remove();
             // ★ もとの箱を使いながら入れかえるよ
-            pScroll.innerHTML = ""; // ★ いったんからっぽにするよ
-            if (keepHeader) pScroll.appendChild(keepHeader); // ★ もとの箱を戻すよ
-            pScroll.append(...tmp.childNodes); // ★ テンプレートの中身を入れるよ
+            workTable.innerHTML = ""; // ★ いったんからっぽにするよ
+            if (keepHeader) workTable.appendChild(keepHeader); // ★ もとの箱を戻すよ
+            workTable.append(...tmp.childNodes); // ★ テンプレートの中身を入れるよ
             // ★ 今使っているプルダウンを覚えておくよ
             shiftSelectElement = shiftSel;
             // ★ 次の見回りで復元をリセットしないようにしておくよ
