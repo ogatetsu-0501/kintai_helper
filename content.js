@@ -115,8 +115,14 @@ function setupTemplateRegisterButton() {
     const name = prompt("テンプレートの名前を入れてね");
     if (!name) return;
     // ★ 今の表の中身を覚えておくよ
-    const templates = JSON.parse(localStorage.getItem("myShiftTemplates") || "{}");
-    templates[name] = pScroll.innerHTML;
+    const templates = JSON.parse(
+      localStorage.getItem("myShiftTemplates") || "{}"
+    );
+    // ★ プルダウンが入っている見出しをコピーから消すよ
+    const clone = pScroll.cloneNode(true);
+    const header = clone.querySelector(":scope > div.mb30.tampSelect");
+    if (header) header.remove();
+    templates[name] = clone.innerHTML;
     localStorage.setItem("myShiftTemplates", JSON.stringify(templates));
     // ★ 新しいテンプレートをプルダウンにも足すよ
     if (shiftSelectElement) populateCustomTemplates(shiftSelectElement);
@@ -211,27 +217,24 @@ setInterval(() => {
           const html = templates[val.substring(CUSTOM_TEMPLATE_PREFIX.length)];
           const pScroll = document.getElementById("pScroll");
           if (pScroll && html !== undefined) {
-            // ★ 「テンプレートを選択」と書いてある箱を見つけるよ
+            // ★ 「テンプレートを選択」と書いてある箱を取っておくよ
             const keepHeader = pScroll.querySelector(
               ":scope > div.mb30.tampSelect"
             );
             // ★ 新しい表を入れるための箱をつくるよ
             const tmp = document.createElement("div");
             tmp.innerHTML = html;
-            // ★ 新しい箱にも同じ場所があるか探すよ
+            // ★ テンプレートの中に同じ箱があったら消すよ
             const tmpHeader = tmp.querySelector(":scope > div.mb30.tampSelect");
-            if (keepHeader) {
-              if (tmpHeader) {
-                // ★ その場所はもとのをそのまま使うよ
-                tmpHeader.replaceWith(keepHeader);
-              } else {
-                // ★ なかったらいちばん上にのせるよ
-                tmp.prepend(keepHeader);
-              }
-            }
-            // ★ 箱の中身をまるごと入れかえるよ
-            pScroll.innerHTML = "";
-            pScroll.append(...tmp.childNodes);
+            if (tmpHeader) tmpHeader.remove();
+            // ★ もとの箱を使いながら入れかえるよ
+            pScroll.innerHTML = ""; // ★ いったんからっぽにするよ
+            if (keepHeader) pScroll.appendChild(keepHeader); // ★ もとの箱を戻すよ
+            pScroll.append(...tmp.childNodes); // ★ テンプレートの中身を入れるよ
+            // ★ 今使っているプルダウンを覚えておくよ
+            shiftSelectElement = shiftSel;
+            // ★ 復元はもう終わったことにしておくよ
+            shiftTemplateRestored = true;
           }
         }
       });
