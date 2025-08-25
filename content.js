@@ -75,6 +75,55 @@ let shiftSelectElement = null;
 let shiftTemplateRestored = false;
 let defaultConfig = { title: "", workTypes: [], reasons: [] };
 
+// ★ 自分で作るテンプレートを見分けるためのしるしだよ
+const CUSTOM_TEMPLATE_PREFIX = "custom_";
+
+// ★ 保存しておいたテンプレートをプルダウンに入れるよ
+function populateCustomTemplates(sel) {
+  // ★ しまっておいたテンプレートたちを取り出すよ
+  const templates = JSON.parse(localStorage.getItem("myShiftTemplates") || "{}");
+  Object.keys(templates).forEach((name) => {
+    const value = CUSTOM_TEMPLATE_PREFIX + name;
+    // ★ 同じ名前のテンプレートがもう入っていないか確かめるよ
+    const exists = Array.from(sel.options).some((o) => o.value === value);
+    if (!exists) {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+// ★ シフトを保存するボタンを作るよ
+function setupTemplateRegisterButton() {
+  const pScroll = document.getElementById("pScroll");
+  // ★ 表がまだなかったら何もしないよ
+  if (!pScroll) return;
+  // ★ もうボタンがあったら新しく作らないよ
+  if (document.getElementById("template-register-button")) return;
+  const container = document.createElement("div");
+  const btn = document.createElement("button");
+  btn.id = "template-register-button";
+  btn.textContent = "テンプレート登録";
+  applyDefaultButtonStyle(btn);
+  container.appendChild(btn);
+  // ★ 表のすぐ上にボタンを置くよ
+  pScroll.parentNode.insertBefore(container, pScroll);
+  btn.addEventListener("click", () => {
+    // ★ 保存するときの名前をきくよ
+    const name = prompt("テンプレートの名前を入れてね");
+    if (!name) return;
+    // ★ 今の表の中身を覚えておくよ
+    const templates = JSON.parse(localStorage.getItem("myShiftTemplates") || "{}");
+    templates[name] = pScroll.innerHTML;
+    localStorage.setItem("myShiftTemplates", JSON.stringify(templates));
+    // ★ 新しいテンプレートをプルダウンにも足すよ
+    if (shiftSelectElement) populateCustomTemplates(shiftSelectElement);
+    alert("テンプレートを保存したよ");
+  });
+}
+
 // default_config.json 読み込み
 fetch(chrome.runtime.getURL("default_config.json"))
   .then((res) => res.json())
@@ -130,6 +179,8 @@ window.addEventListener("load", () => {
 
 // ====== 500msごとに監視 ======
 setInterval(() => {
+  // ★ ボタンを用意するよ
+  setupTemplateRegisterButton();
   const cancelApplyBtn = document.querySelector(
     "button.jsubmit-cancle-create-timecard"
   );
@@ -151,7 +202,21 @@ setInterval(() => {
           { [`savedShiftTemplate_${user}`]: shiftSel.value },
           () => {}
         );
+        // ★ 自分のテンプレートを選んだときは表を入れ替えるよ
+        const val = shiftSel.value;
+        if (val.startsWith(CUSTOM_TEMPLATE_PREFIX)) {
+          const templates = JSON.parse(
+            localStorage.getItem("myShiftTemplates") || "{}"
+          );
+          const html = templates[val.substring(CUSTOM_TEMPLATE_PREFIX.length)];
+          const pScroll = document.getElementById("pScroll");
+          if (pScroll && html !== undefined) {
+            pScroll.innerHTML = html;
+          }
+        }
       });
+      // ★ 自分で保存したテンプレートをプルダウンに加えるよ
+      populateCustomTemplates(shiftSel);
     }
     // ★ 保存されたシフトをまだ復元していなければやってみるよ
     if (!shiftTemplateRestored) {
