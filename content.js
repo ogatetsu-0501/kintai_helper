@@ -124,6 +124,10 @@ function setupTemplateRegisterButton() {
     const clone = workTable.cloneNode(true);
     const header = clone.querySelector(":scope > div.mb30.tampSelect");
     if (header) header.remove();
+    // ★ 同じ名前の箱がふたつできないようにするよ
+    clone
+      .querySelectorAll("[id='pScroll']")
+      .forEach((el) => el.removeAttribute("id"));
     // ★ 入力欄と選ぶところの今の状態をメモするよ
     clone.querySelectorAll("input, select").forEach((el) => {
       if (el.tagName === "INPUT") {
@@ -246,6 +250,10 @@ setInterval(() => {
             // ★ 新しい表を入れるための箱をつくるよ
             const tmp = document.createElement("div");
             tmp.innerHTML = html;
+            // ★ pScrollっていう名前は特別だから消しておくよ
+            tmp
+              .querySelectorAll("[id='pScroll']")
+              .forEach((el) => el.removeAttribute("id"));
             // ★ テンプレートの中に同じ箱があったら消すよ
             const tmpHeader = tmp.querySelector(":scope > div.mb30.tampSelect");
             if (tmpHeader) tmpHeader.remove();
