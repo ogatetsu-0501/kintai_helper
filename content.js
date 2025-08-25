@@ -211,7 +211,27 @@ setInterval(() => {
           const html = templates[val.substring(CUSTOM_TEMPLATE_PREFIX.length)];
           const pScroll = document.getElementById("pScroll");
           if (pScroll && html !== undefined) {
-            pScroll.innerHTML = html;
+            // ★ 「テンプレートを選択」と書いてある箱を見つけるよ
+            const keepHeader = pScroll.querySelector(
+              ":scope > div.mb30.tampSelect"
+            );
+            // ★ 新しい表を入れるための箱をつくるよ
+            const tmp = document.createElement("div");
+            tmp.innerHTML = html;
+            // ★ 新しい箱にも同じ場所があるか探すよ
+            const tmpHeader = tmp.querySelector(":scope > div.mb30.tampSelect");
+            if (keepHeader) {
+              if (tmpHeader) {
+                // ★ その場所はもとのをそのまま使うよ
+                tmpHeader.replaceWith(keepHeader);
+              } else {
+                // ★ なかったらいちばん上にのせるよ
+                tmp.prepend(keepHeader);
+              }
+            }
+            // ★ 箱の中身をまるごと入れかえるよ
+            pScroll.innerHTML = "";
+            pScroll.append(...tmp.childNodes);
           }
         }
       });
