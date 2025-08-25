@@ -140,9 +140,11 @@ setInterval(() => {
     "shift_template_collection_for_timecard_cf"
   );
   if (shiftSel) {
-    // ★ 新しくシフトのプルダウンを見つけたらイベントを付けるよ
+    // ★ 新しいプルダウンを見つけたら準備をやりなおすよ
     if (shiftSel !== shiftSelectElement) {
       shiftSelectElement = shiftSel;
+      // ★ 消えていたときにリセットした復元フラグをもう一度使うよ
+      shiftTemplateRestored = false;
       shiftSel.addEventListener("change", () => {
         const user = getCurrentUserName();
         chrome.storage.local.set(
@@ -196,6 +198,10 @@ setInterval(() => {
         }
       });
     }
+  } else {
+    // ★ プルダウンがなくなったら次に出たときのために忘れておくよ
+    shiftSelectElement = null;
+    shiftTemplateRestored = false;
   }
 
   if (
