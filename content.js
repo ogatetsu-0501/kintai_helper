@@ -124,6 +124,19 @@ function setupTemplateRegisterButton() {
     const clone = pScroll.cloneNode(true);
     const header = clone.querySelector(":scope > div.mb30.tampSelect");
     if (header) header.remove();
+    // ★ 入力欄と選ぶところの今の状態をメモするよ
+    clone.querySelectorAll("input, select").forEach((el) => {
+      if (el.tagName === "INPUT") {
+        // ★ 入力欄の中身をそのまま覚えておくよ
+        el.setAttribute("value", el.value);
+      } else if (el.tagName === "SELECT") {
+        // ★ 今選ばれているところにしるしを付けるよ
+        el.querySelectorAll("option:checked").forEach((opt) => {
+          opt.setAttribute("selected", "selected");
+        });
+      }
+    });
+    // ★ コピーした表をしまっておくよ
     templates[name] = clone.innerHTML;
     localStorage.setItem("myShiftTemplates", JSON.stringify(templates));
     // ★ 新しいテンプレートをプルダウンにも足すよ
