@@ -138,24 +138,130 @@ setInterval(() => {
     "shift_template_collection_for_timecard_cf"
   );
   if (shiftSel && shiftSel !== shiftSelectElement) {
+    // 一度だけ初期化するよ
     shiftSelectElement = shiftSel;
+
+    // ✅ ボタンを作ってテンプレートを保存するよ
+    const saveTempBtn = document.createElement("button");
+    applyDefaultButtonStyle(saveTempBtn);
+    saveTempBtn.textContent = "テンプレート保存";
+    saveTempBtn.style.marginTop = "6px";
+    shiftSel.parentElement.appendChild(saveTempBtn);
+
+    // 🔧 テンプレート追加用の関数だよ
+    function addTemplateOption(name) {
+      const opt = document.createElement("option");
+      opt.value = `custom:${name}`;
+      opt.textContent = name;
+      shiftSel.appendChild(opt);
+    }
+
+    // 💾 今の入力内容をテンプレートとして保存するよ
+    function saveCurrentTemplate(name) {
+      const user = getCurrentUserName();
+      chrome.storage.local.get(
+        [`customShiftTemplates_${user}`],
+        (res) => {
+          const list = res[`customShiftTemplates_${user}`] || [];
+          const obj = {
+            name,
+            absentHtml: document.querySelector("div.type_absent")?.outerHTML || "",
+            inoutHtml:
+              document.querySelector("span.type_in_out_break")?.outerHTML || "",
+            workHtml:
+              document.querySelector("div.timecards_hidden_data")?.outerHTML || "",
+            breakHtml:
+              document.querySelector("div.break-times.time_card_container")?.outerHTML || "",
+          };
+          const idx = list.findIndex((t) => t.name === name);
+          if (idx >= 0) list[idx] = obj;
+          else list.push(obj);
+          chrome.storage.local.set({ [`customShiftTemplates_${user}`]: list }, () => {
+            if (idx < 0) addTemplateOption(name);
+            shiftSel.value = `custom:${name}`;
+            shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
+          });
+        }
+      );
+    }
+
+    // 📥 テンプレートを読み込んでセレクトに追加するよ
+    const user = getCurrentUserName();
+    chrome.storage.local.get([`customShiftTemplates_${user}`], (res) => {
+      const list = res[`customShiftTemplates_${user}`] || [];
+      list.forEach((t) => addTemplateOption(t.name));
+      chrome.storage.local.get(`savedShiftTemplate_${user}`, (data) => {
+        const saved = data[`savedShiftTemplate_${user}`];
+        if (saved) {
+          const has = Array.from(shiftSel.options).some((o) => o.value === saved);
+          if (has) {
+            shiftSel.value = saved;
+            shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        }
+      });
+    });
+
+    // ⏬ セレクトが変わったときの動きだよ
     shiftSel.addEventListener("change", () => {
       const user = getCurrentUserName();
+      const val = shiftSel.value;
       chrome.storage.local.set(
-        { [`savedShiftTemplate_${user}`]: shiftSel.value },
+        { [`savedShiftTemplate_${user}`]: val },
         () => {}
       );
-    });
-    const user = getCurrentUserName();
-    chrome.storage.local.get(`savedShiftTemplate_${user}`, (data) => {
-      const saved = data[`savedShiftTemplate_${user}`];
-      if (saved) {
-        const has = Array.from(shiftSel.options).some((o) => o.value === saved);
-        if (has) {
-          shiftSel.value = saved;
-          shiftSel.dispatchEvent(new Event("change", { bubbles: true }));
-        }
+      if (val.startsWith("custom:")) {
+        const name = val.replace("custom:", "");
+        chrome.storage.local.get([`customShiftTemplates_${user}`], (res) => {
+          const list = res[`customShiftTemplates_${user}`] || [];
+          const t = list.find((x) => x.name === name);
+          if (!t) return;
+          // 📝 各部分をページに反映するよ
+          if (t.absentHtml) {
+            const abs = document.querySelector("div.type_absent");
+            if (abs) abs.outerHTML = t.absentHtml;
+            else {
+              const row1 = document.querySelector("div.row_1");
+              if (row1) row1.insertAdjacentHTML("beforeend", t.absentHtml);
+            }
+          }
+          if (t.inoutHtml) {
+            const io = document.querySelector("span.type_in_out_break");
+            if (io) io.outerHTML = t.inoutHtml;
+            else {
+              const title = document.querySelector(
+                "div.time_card_container .title.staff_time_cards_month"
+              );
+              if (title) title.insertAdjacentHTML("beforeend", t.inoutHtml);
+            }
+          }
+          if (t.workHtml) {
+            const work = document.querySelector("div.timecards_hidden_data");
+            if (work) work.outerHTML = t.workHtml;
+            else {
+              const container = document.querySelector("div.time_card_container");
+              if (container) container.insertAdjacentHTML("beforeend", t.workHtml);
+            }
+          }
+          if (t.breakHtml) {
+            const br = document.querySelector(
+              "div.break-times.time_card_container"
+            );
+            if (br) br.outerHTML = t.breakHtml;
+            else {
+              const target = document.querySelector(".hour-work");
+              if (target)
+                target.insertAdjacentHTML("afterend", t.breakHtml);
+            }
+          }
+        });
       }
+    });
+
+    // 🖱️ クリックでテンプレートを保存するよ
+    saveTempBtn.addEventListener("click", () => {
+      const name = prompt("テンプレート名を入力してね");
+      if (name) saveCurrentTemplate(name);
     });
   }
 
