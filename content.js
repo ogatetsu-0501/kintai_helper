@@ -208,14 +208,18 @@ function addShiftTemplateSaveButton(sel) {
   btn.id = "save-shift-template-btn"; // ★ ボタンに名前をつけるよ
   btn.textContent = "テンプレート保存"; // ★ ボタンに文字を書くよ
   applyDefaultButtonStyle(btn); // ★ ボタンをいつもの見た目にするよ
+  btn.style.background = "#65d3e4"; // ★ 空の色で目立たせるよ
+  btn.style.color = "#ffffff"; // ★ 文字は白だよ
+  btn.style.border = "1px solid #65d3e4"; // ★ ふちも同じ色だよ
   btn.style.width = "auto"; // ★ ボタンの横幅を自動にするよ
 
   const delBtn = document.createElement("button"); // ★ 消すボタンも作るよ
   delBtn.id = "delete-shift-template-btn"; // ★ ボタンに名前をつけるよ
   delBtn.textContent = "テンプレート削除"; // ★ 消すボタンの文字だよ
   applyDefaultButtonStyle(delBtn); // ★ ボタンをいつもの見た目にするよ
-  delBtn.style.background = "#d9534f"; // ★ 赤色で注意を出すよ
-  delBtn.style.border = "1px solid #d9534f"; // ★ ふちも赤にするよ
+  delBtn.style.background = "#ff7978"; // ★ まっ赤で注意を出すよ
+  delBtn.style.color = "#ffffff"; // ★ 文字は白だよ
+  delBtn.style.border = "1px solid #ff7978"; // ★ ふちも赤にするよ
   delBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
   btn.addEventListener("click", () => {
@@ -240,9 +244,13 @@ function addShiftTemplateSaveButton(sel) {
     // ★ 箱の上にタイトルをかざるよ
     const header = document.createElement("div");
     header.className = "popUpTitle editTime cf"; // ★ 見た目をサイトと同じにするよ
+    header.style.background = "#34495e"; // ★ 見出しをくらい色にするよ
+    header.style.padding = "15px 0"; // ★ 上と下にすき間をつくるよ
+    header.style.textAlign = "center"; // ★ 文字をまんなかにするよ
     const ttl = document.createElement("div");
     ttl.className = "ttl"; // ★ 文字を入れる場所だよ
     ttl.textContent = "テンプレート保存"; // ★ モーダルの題名だよ
+    ttl.style.color = "#ffffff"; // ★ 文字は白で見やすくするよ
     header.appendChild(ttl);
     box.appendChild(header);
 
@@ -258,15 +266,18 @@ function addShiftTemplateSaveButton(sel) {
     const okBtn = document.createElement("button");
     okBtn.textContent = "保存";
     applyDefaultButtonStyle(okBtn); // ★ ボタンをいつもの見た目にするよ
+    okBtn.style.background = "#65d3e4"; // ★ 空の色で目立たせるよ
+    okBtn.style.color = "#ffffff"; // ★ 文字は白だよ
+    okBtn.style.border = "1px solid #65d3e4"; // ★ ふちも同じ色だよ
     okBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
     // ★ キャンセルボタンを作るよ
     const cancelBtn = document.createElement("button");
     cancelBtn.textContent = "キャンセル";
     applyDefaultButtonStyle(cancelBtn); // ★ ボタンをいつもの見た目にするよ
-    cancelBtn.style.background = "#ccc"; // ★ 灰色でおだやかにするよ
-    cancelBtn.style.color = "#666"; // ★ 文字も灰色だよ
-    cancelBtn.style.border = "1px solid #ccc"; // ★ ふちも灰色だよ
+    cancelBtn.style.background = "#f7f8fa"; // ★ うすい灰色で静かにするよ
+    cancelBtn.style.color = "#667083"; // ★ 文字はねずみ色だよ
+    cancelBtn.style.border = "1px solid #dde2ed"; // ★ ふちはうすい灰色だよ
     cancelBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
     // ★ ボタンを横にならべる箱だよ
@@ -347,9 +358,13 @@ function addShiftTemplateSaveButton(sel) {
       // ★ 箱の上にタイトルをかざるよ
       const header = document.createElement("div");
       header.className = "popUpTitle editTime cf"; // ★ 見た目をそろえるよ
+      header.style.background = "#34495e"; // ★ 見出しをくらい色にするよ
+      header.style.padding = "15px 0"; // ★ 上と下にすき間をつくるよ
+      header.style.textAlign = "center"; // ★ 文字をまんなかにするよ
       const ttl = document.createElement("div");
       ttl.className = "ttl"; // ★ 文字を入れるよ
       ttl.textContent = "テンプレート削除"; // ★ モーダルの題名だよ
+      ttl.style.color = "#ffffff"; // ★ 文字は白で見やすくするよ
       header.appendChild(ttl);
       box.appendChild(header);
 
@@ -374,16 +389,17 @@ function addShiftTemplateSaveButton(sel) {
       const okBtn = document.createElement("button"); // ★ 消すボタンだよ
       okBtn.textContent = "削除";
       applyDefaultButtonStyle(okBtn); // ★ ボタンをいつもの見た目にするよ
-      okBtn.style.background = "#d9534f"; // ★ 赤くして注意するよ
-      okBtn.style.border = "1px solid #d9534f"; // ★ ふちも赤だよ
+      okBtn.style.background = "#ff7978"; // ★ まっ赤で注意するよ
+      okBtn.style.color = "#ffffff"; // ★ 文字は白だよ
+      okBtn.style.border = "1px solid #ff7978"; // ★ ふちも赤だよ
       okBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
       const cancelBtn = document.createElement("button"); // ★ やめるボタンだよ
       cancelBtn.textContent = "キャンセル";
       applyDefaultButtonStyle(cancelBtn); // ★ ボタンをいつもの見た目にするよ
-      cancelBtn.style.background = "#ccc"; // ★ 灰色でおだやかにするよ
-      cancelBtn.style.color = "#666"; // ★ 文字も灰色だよ
-      cancelBtn.style.border = "1px solid #ccc"; // ★ ふちも灰色だよ
+      cancelBtn.style.background = "#f7f8fa"; // ★ うすい灰色で静かにするよ
+      cancelBtn.style.color = "#667083"; // ★ 文字はねずみ色だよ
+      cancelBtn.style.border = "1px solid #dde2ed"; // ★ ふちはうすい灰色だよ
       cancelBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
       btnWrap.appendChild(okBtn);
