@@ -250,34 +250,90 @@ function addShiftTemplateSaveButton(sel) {
         alert("消すテンプレートがないよ"); // ★ なければ教えるよ
         return; // ★ おしまい
       }
-      const name = prompt(
-        "どのテンプレートを消す?\n" + names.join(", ")
-      ); // ★ 消す名前をえらんでもらうよ
-      if (!name || !templates[name]) return; // ★ ない名前なら終わり
-      delete templates[name]; // ★ データを消すよ
-      chrome.storage.local.set(
-        { [`customShiftTemplates_${user}`]: templates },
-        () => {
-          const opt = Array.from(sel.options).find(
-            (o) => o.value === `__ext_${name}`
-          ); // ★ プルダウンの項目をさがすよ
-          if (opt) opt.remove(); // ★ 見つけたら消すよ
-          chrome.storage.local.get(
-            `savedShiftTemplate_${user}`,
-            (d) => {
-              if (d[`savedShiftTemplate_${user}`] === `__ext_${name}`) {
-                chrome.storage.local.remove(
-                  `savedShiftTemplate_${user}`
-                ); // ★ えらんでた記録も消すよ
-              }
-            }
-          );
-          if (sel.value === `__ext_${name}`) {
-            sel.value = ""; // ★ いまえらんでいたら空にするよ
-            sel.dispatchEvent(new Event("change", { bubbles: true })); // ★ 変わったよって知らせるよ
-          }
+
+      const overlay = document.createElement("div"); // ★ 画面を暗くする箱だよ
+      overlay.style.position = "fixed";
+      overlay.style.top = "0";
+      overlay.style.left = "0";
+      overlay.style.right = "0";
+      overlay.style.bottom = "0";
+      overlay.style.background = "rgba(0,0,0,0.5)";
+      overlay.style.zIndex = "10000";
+
+      const box = document.createElement("div"); // ★ チェックを書く箱だよ
+      box.style.background = "#fff";
+      box.style.padding = "10px";
+      box.style.margin = "50px auto";
+      box.style.width = "300px";
+      box.style.maxHeight = "80%";
+      box.style.overflowY = "auto";
+
+      names.forEach((n) => {
+        const label = document.createElement("label"); // ★ 名前の横にチェックを置くよ
+        const chk = document.createElement("input");
+        chk.type = "checkbox";
+        chk.value = n;
+        label.appendChild(chk);
+        label.appendChild(document.createTextNode(n));
+        box.appendChild(label);
+        box.appendChild(document.createElement("br"));
+      });
+
+      const okBtn = document.createElement("button"); // ★ 消すボタンだよ
+      okBtn.textContent = "削除";
+      const cancelBtn = document.createElement("button"); // ★ やめるボタンだよ
+      cancelBtn.textContent = "キャンセル";
+      box.appendChild(okBtn);
+      box.appendChild(cancelBtn);
+
+      overlay.appendChild(box);
+      document.body.appendChild(overlay); // ★ 画面に出すよ
+
+      cancelBtn.addEventListener("click", () => {
+        overlay.remove(); // ★ 画面から消すよ
+      });
+
+      okBtn.addEventListener("click", () => {
+        const checked = Array.from(
+          box.querySelectorAll("input[type='checkbox']:checked")
+        ).map((c) => c.value); // ★ えらんだ名前を集めるよ
+        if (checked.length === 0) {
+          overlay.remove(); // ★ 何もえらばなければ終わり
+          return;
         }
-      );
+        checked.forEach((name) => {
+          delete templates[name]; // ★ ひとつずつ消すよ
+        });
+        chrome.storage.local.set(
+          { [`customShiftTemplates_${user}`]: templates },
+          () => {
+            chrome.storage.local.get(
+              `savedShiftTemplate_${user}`,
+              (d) => {
+                const saved = d[`savedShiftTemplate_${user}`];
+                checked.forEach((name) => {
+                  const opt = Array.from(sel.options).find(
+                    (o) => o.value === `__ext_${name}`
+                  ); // ★ プルダウンの項目をさがすよ
+                  if (opt) opt.remove(); // ★ 見つけたら消すよ
+                  if (saved === `__ext_${name}`) {
+                    chrome.storage.local.remove(
+                      `savedShiftTemplate_${user}`
+                    ); // ★ えらんでた記録も消すよ
+                  }
+                  if (sel.value === `__ext_${name}`) {
+                    sel.value = ""; // ★ いまえらんでいたら空にするよ
+                    sel.dispatchEvent(
+                      new Event("change", { bubbles: true })
+                    ); // ★ 変わったよって知らせるよ
+                  }
+                });
+              }
+            );
+          }
+        );
+        overlay.remove(); // ★ 終わったら画面を消すよ
+      });
     });
   });
 
