@@ -156,6 +156,16 @@ setInterval(() => {
       shiftSel.appendChild(opt);
     }
 
+    // 🌟 idを消してHTML文字列を取る小さな関数だよ
+    function getCleanOuterHTML(selector) {
+      const el = document.querySelector(selector);
+      if (!el) return "";
+      const copy = el.cloneNode(true);
+      copy.removeAttribute("id");
+      copy.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
+      return copy.outerHTML;
+    }
+
     // 💾 今の入力内容をテンプレートとして保存するよ
     function saveCurrentTemplate(name) {
       const user = getCurrentUserName();
@@ -165,13 +175,12 @@ setInterval(() => {
           const list = res[`customShiftTemplates_${user}`] || [];
           const obj = {
             name,
-            absentHtml: document.querySelector("div.type_absent")?.outerHTML || "",
-            inoutHtml:
-              document.querySelector("span.type_in_out_break")?.outerHTML || "",
-            workHtml:
-              document.querySelector("div.timecards_hidden_data")?.outerHTML || "",
-            breakHtml:
-              document.querySelector("div.break-times.time_card_container")?.outerHTML || "",
+            absentHtml: getCleanOuterHTML("div.type_absent"),
+            inoutHtml: getCleanOuterHTML("span.type_in_out_break"),
+            workHtml: getCleanOuterHTML("div.timecards_hidden_data"),
+            breakHtml: getCleanOuterHTML(
+              "div.break-times.time_card_container"
+            ),
           };
           const idx = list.findIndex((t) => t.name === name);
           if (idx >= 0) list[idx] = obj;
