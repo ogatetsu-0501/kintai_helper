@@ -236,7 +236,7 @@ function addShiftTemplateSaveButton(sel) {
     // ★ 真ん中に置く箱をつくるよ
     const box = document.createElement("div");
     box.style.background = "#fff";
-    box.style.padding = "10px";
+    box.style.padding = "0 10px 10px"; // ★ 上のすき間をなくして題名を見えるようにするよ
     box.style.margin = "50px auto";
     box.style.width = "300px";
     box.style.textAlign = "center";
@@ -247,6 +247,9 @@ function addShiftTemplateSaveButton(sel) {
     header.style.background = "#34495e"; // ★ 見出しをくらい色にするよ
     header.style.padding = "15px 0"; // ★ 上と下にすき間をつくるよ
     header.style.textAlign = "center"; // ★ 文字をまんなかにするよ
+    header.style.margin = "0 0 10px"; // ★ 下にちょっとすき間をあけるよ
+    header.style.position = "sticky"; // ★ スクロールしても題名が上にくっつくよ
+    header.style.top = "0"; // ★ いちばん上に固定するよ
     const ttl = document.createElement("div");
     ttl.className = "ttl"; // ★ 文字を入れる場所だよ
     ttl.textContent = "テンプレート保存"; // ★ モーダルの題名だよ
@@ -348,7 +351,7 @@ function addShiftTemplateSaveButton(sel) {
 
       const box = document.createElement("div"); // ★ チェックを書く箱だよ
       box.style.background = "#fff";
-      box.style.padding = "10px";
+      box.style.padding = "0 10px 10px"; // ★ 上のすき間をなくして題名を見えるようにするよ
       box.style.margin = "50px auto";
       box.style.width = "300px";
       box.style.maxHeight = "80%";
@@ -361,6 +364,9 @@ function addShiftTemplateSaveButton(sel) {
       header.style.background = "#34495e"; // ★ 見出しをくらい色にするよ
       header.style.padding = "15px 0"; // ★ 上と下にすき間をつくるよ
       header.style.textAlign = "center"; // ★ 文字をまんなかにするよ
+      header.style.margin = "0 0 10px"; // ★ 下にすき間をあけるよ
+      header.style.position = "sticky"; // ★ スクロールしても題名が上にくっつくよ
+      header.style.top = "0"; // ★ いちばん上に固定するよ
       const ttl = document.createElement("div");
       ttl.className = "ttl"; // ★ 文字を入れるよ
       ttl.textContent = "テンプレート削除"; // ★ モーダルの題名だよ
