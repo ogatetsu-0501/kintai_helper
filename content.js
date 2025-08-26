@@ -145,7 +145,7 @@ function replaceOrCreate(selector, html, parentSelector) {
   }
 }
 
-// ★ 保存したテンプレを画面に反映するよ
+// ★ 保存したテンプレートを画面に反映するよ
   function applyShiftTemplate(name) {
     const user = getCurrentUserName();
     chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
@@ -202,9 +202,16 @@ function addShiftTemplateSaveButton(sel) {
   if (document.getElementById("save-shift-template-btn")) return; // ★ もうあるなら作らないよ
   const btn = document.createElement("button"); // ★ ボタンを作るよ
   btn.id = "save-shift-template-btn"; // ★ ボタンに名前をつけるよ
-  btn.textContent = "テンプレ保存"; // ★ ボタンに文字を書くよ
+  btn.textContent = "テンプレート保存"; // ★ ボタンに文字を書くよ
   applyDefaultButtonStyle(btn); // ★ ボタンの見た目をそろえるよ
   btn.style.width = "auto"; // ★ ボタンの横幅を自動にするよ
+
+  const delBtn = document.createElement("button"); // ★ 消すボタンも作るよ
+  delBtn.id = "delete-shift-template-btn"; // ★ ボタンに名前をつけるよ
+  delBtn.textContent = "テンプレート削除"; // ★ 消すボタンの文字だよ
+  applyDefaultButtonStyle(delBtn); // ★ 見た目をそろえるよ
+  delBtn.style.width = "auto"; // ★ 横幅を自動にするよ
+
   btn.addEventListener("click", () => {
     const name = prompt("テンプレート名を入力"); // ★ 名前を聞くよ
     if (!name) return; // ★ 名前がないなら終わりだよ
@@ -212,19 +219,20 @@ function addShiftTemplateSaveButton(sel) {
     const user = getCurrentUserName(); // ★ ユーザー名を調べるよ
     chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
       const templates = res[`customShiftTemplates_${user}`] || {}; // ★ 前のデータを取るよ
-      templates[name] = data; // ★ 新しいデータを入れるよ
+      templates[name] = data; // ★ 新しいデータを入れるよ (同じ名前なら上書きだよ)
       chrome.storage.local.set(
         { [`customShiftTemplates_${user}`]: templates },
         () => {
-          if (
-            !Array.from(sel.options).some(
-              (o) => o.value === `__ext_${name}`
-            )
-          ) {
+          const existOpt = Array.from(sel.options).find(
+            (o) => o.value === `__ext_${name}`
+          ); // ★ もうある選択肢をさがすよ
+          if (!existOpt) {
             const opt = document.createElement("option"); // ★ 新しい選択肢を作るよ
             opt.value = `__ext_${name}`; // ★ データの名前を入れるよ
             opt.textContent = name; // ★ 目に見える名前を入れるよ
             sel.appendChild(opt); // ★ 選べるようにするよ
+          } else {
+            existOpt.textContent = name; // ★ 文字を新しくするよ
           }
           sel.value = `__ext_${name}`; // ★ 今の選択を新しいものにするよ
           sel.dispatchEvent(new Event("change", { bubbles: true })); // ★ 変わったことを知らせるよ
@@ -232,16 +240,59 @@ function addShiftTemplateSaveButton(sel) {
       );
     });
   });
+
+  delBtn.addEventListener("click", () => {
+    const user = getCurrentUserName(); // ★ ユーザー名を調べるよ
+    chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
+      const templates = res[`customShiftTemplates_${user}`] || {}; // ★ 保存したテンプレートを取るよ
+      const names = Object.keys(templates); // ★ 名前を全部集めるよ
+      if (names.length === 0) {
+        alert("消すテンプレートがないよ"); // ★ なければ教えるよ
+        return; // ★ おしまい
+      }
+      const name = prompt(
+        "どのテンプレートを消す?\n" + names.join(", ")
+      ); // ★ 消す名前をえらんでもらうよ
+      if (!name || !templates[name]) return; // ★ ない名前なら終わり
+      delete templates[name]; // ★ データを消すよ
+      chrome.storage.local.set(
+        { [`customShiftTemplates_${user}`]: templates },
+        () => {
+          const opt = Array.from(sel.options).find(
+            (o) => o.value === `__ext_${name}`
+          ); // ★ プルダウンの項目をさがすよ
+          if (opt) opt.remove(); // ★ 見つけたら消すよ
+          chrome.storage.local.get(
+            `savedShiftTemplate_${user}`,
+            (d) => {
+              if (d[`savedShiftTemplate_${user}`] === `__ext_${name}`) {
+                chrome.storage.local.remove(
+                  `savedShiftTemplate_${user}`
+                ); // ★ えらんでた記録も消すよ
+              }
+            }
+          );
+          if (sel.value === `__ext_${name}`) {
+            sel.value = ""; // ★ いまえらんでいたら空にするよ
+            sel.dispatchEvent(new Event("change", { bubbles: true })); // ★ 変わったよって知らせるよ
+          }
+        }
+      );
+    });
+  });
+
   const jdate = document.querySelector("div.floatLeft.jdate"); // ★ 日付の場所を見つけるよ
   if (jdate) {
     jdate.style.display = "inline-block"; // ★ 横に並べても変にならないようにするよ
     jdate.style.verticalAlign = "middle"; // ★ ボタンと真ん中を合わせるよ
-    jdate.insertAdjacentElement("afterend", btn); // ★ 日付の下にボタンを置くよ
+    jdate.insertAdjacentElement("afterend", btn); // ★ 日付の下に保存ボタンを置くよ
+    btn.insertAdjacentElement("afterend", delBtn); // ★ その横に削除ボタンを置くよ
     const btnHeight = btn.offsetHeight; // ★ ボタンの背の高さを調べるよ
     jdate.style.lineHeight = `${btnHeight}px`; // ★ 日付の文字も同じ高さにそろえるよ
     jdate.style.height = `${btnHeight}px`; // ★ 日付の箱も同じ高さにするよ
   } else {
     sel.parentElement.appendChild(btn); // ★ 見つからなければ元の場所に置くよ
+    sel.parentElement.appendChild(delBtn); // ★ 削除ボタンも置くよ
   }
 }
 
@@ -305,10 +356,10 @@ setInterval(() => {
         o.value.startsWith("__ext_")
       );
       const user = getCurrentUserName();
-      // ★ 保存したテンプレをもう一度入れるおまじないだよ
+      // ★ 保存したテンプレートをもう一度入れるおまじないだよ
       function loadCustomTemplates() {
         chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
-          const templates = res[`customShiftTemplates_${user}`] || {}; // ★ 保存したテンプレを全部取るよ
+          const templates = res[`customShiftTemplates_${user}`] || {}; // ★ 保存したテンプレートを全部取るよ
           Object.keys(templates).forEach((name) => {
             if (
               !Array.from(shiftSel.options).some(
@@ -333,11 +384,11 @@ setInterval(() => {
               }
               const name = saved.replace("__ext_", ""); // ★ 名前だけを取り出すよ
               if (saved.startsWith("__ext_") && !templates[name]) {
-                // ★ カスタムテンプレがなくなったときは記録を消すよ
+                // ★ カスタムテンプレートがなくなったときは記録を消すよ
                 chrome.storage.local.remove(
                   `savedShiftTemplate_${user}`,
                   () => {
-                    // ★ もう無いテンプレは記録から消すだけだよ
+                    // ★ もう無いテンプレートは記録から消すだけだよ
                   }
                 );
                 return; // ★ ここでおしまいだよ
@@ -377,7 +428,7 @@ setInterval(() => {
           );
           if (shiftSel.value.startsWith("__ext_")) {
             const name = shiftSel.value.replace("__ext_", "");
-            applyShiftTemplate(name); // ★ 選んだテンプレで画面を作りなおすよ
+            applyShiftTemplate(name); // ★ 選んだテンプレートで画面を作りなおすよ
           }
         });
         if (!hasCustomOption) {
