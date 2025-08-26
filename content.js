@@ -234,7 +234,13 @@ function addShiftTemplateSaveButton(sel) {
   });
   const jdate = document.querySelector("div.floatLeft.jdate"); // ★ 日付の場所を見つけるよ
   if (jdate) {
-    jdate.insertAdjacentElement("afterend", btn); // ★ 日付の下にボタンを置くよ
+    const wrap = document.createElement("span"); // ★ 日付とボタンを入れる箱だよ
+    wrap.style.display = "inline-flex"; // ★ 横にならべるよ
+    wrap.style.alignItems = "center"; // ★ 上下をまんなかにそろえるよ
+    jdate.parentNode.insertBefore(wrap, jdate); // ★ 箱を先に置くよ
+    wrap.appendChild(jdate); // ★ 箱に日付を入れるよ
+    jdate.style.float = "none"; // ★ 日付を浮かせないよ
+    wrap.appendChild(btn); // ★ 箱にボタンも入れるよ
   } else {
     sel.parentElement.appendChild(btn); // ★ 見つからなければ元の場所に置くよ
   }
