@@ -237,6 +237,9 @@ function addShiftTemplateSaveButton(sel) {
     jdate.style.display = "inline-block"; // ★ 横に並べても変にならないようにするよ
     jdate.style.verticalAlign = "middle"; // ★ ボタンと真ん中を合わせるよ
     jdate.insertAdjacentElement("afterend", btn); // ★ 日付の下にボタンを置くよ
+    const btnHeight = btn.offsetHeight; // ★ ボタンの背の高さを調べるよ
+    jdate.style.lineHeight = `${btnHeight}px`; // ★ 日付の文字も同じ高さにそろえるよ
+    jdate.style.height = `${btnHeight}px`; // ★ 日付の箱も同じ高さにするよ
   } else {
     sel.parentElement.appendChild(btn); // ★ 見つからなければ元の場所に置くよ
   }
