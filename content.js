@@ -63,7 +63,9 @@ Promise.all([
       showUpdateNotice(folder, script);
     }
   })
-  .catch((e) => console.error("更新チェックに失敗しました", e));
+  .catch(() => {
+    // ★ 更新チェックに失敗したけど気にしないよ
+  });
 
 // ===== 初期フラグ =====
 let previousVisible = false;
@@ -81,7 +83,7 @@ fetch(chrome.runtime.getURL("default_config.json"))
     defaultConfig = data;
   })
   .catch(() => {
-    console.error("default_config.jsonを読み込めませんでした");
+    // ★ 読み込めなかったけど何もしないよ
   });
 
 // ★ 今の入力を全部集めるよ
@@ -145,7 +147,6 @@ function replaceOrCreate(selector, html, parentSelector) {
 
 // ★ 保存したテンプレを画面に反映するよ
   function applyShiftTemplate(name) {
-    console.log(`テンプレート${name}で値を復元するよ`); // ★ どのテンプレを使うか言うよ
     const user = getCurrentUserName();
     chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
       const templates = res[`customShiftTemplates_${user}`] || {};
@@ -193,7 +194,6 @@ function replaceOrCreate(selector, html, parentSelector) {
         const inp = document.querySelector(b.selector);
         if (inp) inp.value = b.value;
       });
-      console.log(`テンプレート${name}の値を復元したよ`); // ★ 復元が終わったよ
     });
   }
 
@@ -314,7 +314,6 @@ setInterval(() => {
                 opt.value = `__ext_${name}`;
                 opt.textContent = name;
                 shiftSel.appendChild(opt);
-                console.log(`テンプレート${name}をプルダウンに追加したよ`); // ★ 追加したことを知らせるよ
               }
             });
           chrome.storage.local.get(`savedShiftTemplate_${user}`, (data) => {
@@ -324,40 +323,37 @@ setInterval(() => {
                 "button.jsubmit-edit-timecard"
               ); // ★ 「提出」ボタンがあるかさがすよ
               if (!submitBtn) {
-                console.log(
-                  "提出ボタンがないので前の選択を戻さないよ"
-                ); // ★ ボタンがないときは復元しないよ
+                // ★ 提出ボタンがないときは復元しないよ
                 return; // ★ ここでおしまいだよ
               }
               const has = Array.from(shiftSel.options).some(
                 (o) => o.value === saved
               );
               if (has) {
-                shiftSel.value = saved;
-                console.log(`前に選んだ${saved}を復元したよ`); // ★ 前の選択を戻したよ
+                shiftSel.value = saved; // ★ 前に選んだものに戻すよ
                 shiftSel.dispatchEvent(
                   new Event("change", { bubbles: true })
-                );
+                ); // ★ 変わったよと伝えるよ
               }
             }
           });
         });
       }
       if (shiftSel !== shiftSelectElement) {
-        console.log("プルダウンリストを見つけたよ"); // ★ 見つかったら言うよ
+        // ★ プルダウンリストを見つけたよ
         shiftSelectElement = shiftSel;
         dropdownCheckLogged = true; // ★ もうさがしたよ
         addShiftTemplateSaveButton(shiftSel); // ★ シフトを保存するボタンをつけるよ
         shiftSel.addEventListener("change", () => {
-          console.log(`プルダウンで${shiftSel.value}を選んだよ`); // ★ 何を選んだか言うよ
-          const user = getCurrentUserName();
+          // ★ プルダウンで選んだら呼ばれるよ
+          const user = getCurrentUserName(); // ★ だれのデータか調べるよ
           chrome.storage.local.set(
             { [`savedShiftTemplate_${user}`]: shiftSel.value },
-            () => {}
+            () => {} // ★ 終わったら何もしないよ
           );
           if (shiftSel.value.startsWith("__ext_")) {
             const name = shiftSel.value.replace("__ext_", "");
-            console.log(`プルダウンの値に合わせて${name}を復元するよ`); // ★ 選んだテンプレで復元するよ
+            // ★ 選んだテンプレを使って直すよ
             applyShiftTemplate(name); // ★ 選んだテンプレで画面を作りなおすよ
           }
         });
@@ -369,7 +365,7 @@ setInterval(() => {
       }
     } else {
       if (!dropdownCheckLogged) {
-        console.log("プルダウンリストがまだ見つからないよ"); // ★ まだないことを知らせるよ
+        // ★ プルダウンリストがまだ見つからないよ
         dropdownCheckLogged = true; // ★ 一回だけ言うよ
       }
       shiftSelectElement = null; // ★ 見つからなかったら忘れるよ
@@ -396,7 +392,7 @@ setInterval(() => {
       chrome.storage.local.get([makeStorageKey()], (res) => {
         const obj = res[makeStorageKey()];
         if (obj) {
-          console.log("一時保存したデータを見つけたよ"); // ★ みつけたよ
+          // ★ 一時保存したデータを見つけたよ
           try {
           if (obj.hourWorkHtml) {
             const hourWork = document.querySelector(".hour-work");
@@ -436,18 +432,16 @@ setInterval(() => {
             );
             if (selNew) {
               selNew.disabled = false;
-              selNew.value = obj.shiftValue || "";
-              console.log(`プルダウンリストの値を${selNew.value}に戻したよ`); // ★ 以前の値を戻すよ
-              selNew.dispatchEvent(new Event("change", { bubbles: true }));
+              selNew.value = obj.shiftValue || ""; // ★ 以前の値を戻すよ
+              selNew.dispatchEvent(new Event("change", { bubbles: true })); // ★ 変わったよと知らせるよ
             }
           restoredReason = obj.reason || "";
           const textarea = document.getElementById("update_reason");
           if (textarea && !textarea.disabled) {
             textarea.value = obj.reason;
           }
-            tempDataRestored = true;
-            console.log("一時保存したデータからいろんな値を復元したよ"); // ★ 復元できたよ
-            chrome.storage.local.remove(makeStorageKey());
+            tempDataRestored = true; // ★ 復元が終わったよ
+            chrome.storage.local.remove(makeStorageKey()); // ★ もういらないので消すよ
           } catch (e) {}
         }
       });
