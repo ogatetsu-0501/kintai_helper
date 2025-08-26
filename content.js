@@ -294,62 +294,76 @@ setInterval(() => {
     const shiftSel = document.getElementById(
       "shift_template_collection_for_timecard_cf"
     );
-    if (shiftSel && shiftSel !== shiftSelectElement) {
-      console.log("プルダウンリストを見つけたよ"); // ★ 見つかったら言うよ
-      shiftSelectElement = shiftSel;
-      dropdownCheckLogged = true; // ★ もうさがしたよ
-      addShiftTemplateSaveButton(shiftSel); // ★ シフトを保存するボタンをつけるよ
+    if (shiftSel) {
+      // ★ カスタムのえらびがあるか見るよ
+      const hasCustomOption = Array.from(shiftSel.options).some((o) =>
+        o.value.startsWith("__ext_")
+      );
       const user = getCurrentUserName();
-    function loadCustomTemplates() {
-      chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
-        const templates = res[`customShiftTemplates_${user}`] || {};
-          Object.keys(templates).forEach((name) => {
-            if (
-              !Array.from(shiftSel.options).some(
-                (o) => o.value === `__ext_${name}`
-              )
-            ) {
-              const opt = document.createElement("option");
-              opt.value = `__ext_${name}`;
-              opt.textContent = name;
-              shiftSel.appendChild(opt);
-              console.log(`テンプレート${name}をプルダウンに追加したよ`); // ★ 追加したことを知らせるよ
-            }
-          });
-        chrome.storage.local.get(`savedShiftTemplate_${user}`, (data) => {
-          const saved = data[`savedShiftTemplate_${user}`];
-            if (saved) {
-              const has = Array.from(shiftSel.options).some(
-                (o) => o.value === saved
-              );
-              if (has) {
-                shiftSel.value = saved;
-                console.log(`前に選んだ${saved}を復元したよ`); // ★ 前の選択を戻したよ
-                shiftSel.dispatchEvent(
-                  new Event("change", { bubbles: true })
-                );
+      // ★ 保存したテンプレをもう一度入れるおまじないだよ
+      function loadCustomTemplates() {
+        chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
+          const templates = res[`customShiftTemplates_${user}`] || {};
+            Object.keys(templates).forEach((name) => {
+              if (
+                !Array.from(shiftSel.options).some(
+                  (o) => o.value === `__ext_${name}`
+                )
+              ) {
+                const opt = document.createElement("option");
+                opt.value = `__ext_${name}`;
+                opt.textContent = name;
+                shiftSel.appendChild(opt);
+                console.log(`テンプレート${name}をプルダウンに追加したよ`); // ★ 追加したことを知らせるよ
               }
-            }
+            });
+          chrome.storage.local.get(`savedShiftTemplate_${user}`, (data) => {
+            const saved = data[`savedShiftTemplate_${user}`];
+              if (saved) {
+                const has = Array.from(shiftSel.options).some(
+                  (o) => o.value === saved
+                );
+                if (has) {
+                  shiftSel.value = saved;
+                  console.log(`前に選んだ${saved}を復元したよ`); // ★ 前の選択を戻したよ
+                  shiftSel.dispatchEvent(
+                    new Event("change", { bubbles: true })
+                  );
+                }
+              }
+          });
         });
-      });
-    }
-    loadCustomTemplates(); // ★ 保存してあるテンプレを選べるようにするよ
-      shiftSel.addEventListener("change", () => {
-        console.log(`プルダウンで${shiftSel.value}を選んだよ`); // ★ 何を選んだか言うよ
-        const user = getCurrentUserName();
-        chrome.storage.local.set(
-          { [`savedShiftTemplate_${user}`]: shiftSel.value },
-          () => {}
-        );
-        if (shiftSel.value.startsWith("__ext_")) {
-          const name = shiftSel.value.replace("__ext_", "");
-          console.log(`プルダウンの値に合わせて${name}を復元するよ`); // ★ 選んだテンプレで復元するよ
-          applyShiftTemplate(name); // ★ 選んだテンプレで画面を作りなおすよ
+      }
+      if (shiftSel !== shiftSelectElement) {
+        console.log("プルダウンリストを見つけたよ"); // ★ 見つかったら言うよ
+        shiftSelectElement = shiftSel;
+        dropdownCheckLogged = true; // ★ もうさがしたよ
+        addShiftTemplateSaveButton(shiftSel); // ★ シフトを保存するボタンをつけるよ
+        shiftSel.addEventListener("change", () => {
+          console.log(`プルダウンで${shiftSel.value}を選んだよ`); // ★ 何を選んだか言うよ
+          const user = getCurrentUserName();
+          chrome.storage.local.set(
+            { [`savedShiftTemplate_${user}`]: shiftSel.value },
+            () => {}
+          );
+          if (shiftSel.value.startsWith("__ext_")) {
+            const name = shiftSel.value.replace("__ext_", "");
+            console.log(`プルダウンの値に合わせて${name}を復元するよ`); // ★ 選んだテンプレで復元するよ
+            applyShiftTemplate(name); // ★ 選んだテンプレで画面を作りなおすよ
+          }
+        });
+        if (!hasCustomOption) {
+          loadCustomTemplates(); // ★ まだなら入れてあげるよ
         }
-      });
-    } else if (!shiftSel && !dropdownCheckLogged) {
-      console.log("プルダウンリストがまだ見つからないよ"); // ★ まだないことを知らせるよ
-      dropdownCheckLogged = true; // ★ 一回だけ言うよ
+      } else if (!hasCustomOption) {
+        loadCustomTemplates(); // ★ 無くなったら入れ直すよ
+      }
+    } else {
+      if (!dropdownCheckLogged) {
+        console.log("プルダウンリストがまだ見つからないよ"); // ★ まだないことを知らせるよ
+        dropdownCheckLogged = true; // ★ 一回だけ言うよ
+      }
+      shiftSelectElement = null; // ★ 見つからなかったら忘れるよ
     }
 
   if (
