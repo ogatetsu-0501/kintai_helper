@@ -353,10 +353,13 @@ setInterval(() => {
                 has = true; // ★ 追加したからあることにするよ
               }
               if (has) {
-                shiftSel.value = saved;
-                shiftSel.dispatchEvent(
-                  new Event("change", { bubbles: true })
-                );
+                if (shiftSel.value !== saved) {
+                  // ★ いまのえらびと違うときだけ動かすよ
+                  shiftSel.value = saved; // ★ 前にえらんだものを入れるよ
+                  shiftSel.dispatchEvent(
+                    new Event("change", { bubbles: true })
+                  ); // ★ 変わったよって知らせるよ
+                }
               }
             }
           });
