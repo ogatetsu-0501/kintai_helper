@@ -203,13 +203,13 @@ function addShiftTemplateSaveButton(sel) {
   const btn = document.createElement("button"); // ★ ボタンを作るよ
   btn.id = "save-shift-template-btn"; // ★ ボタンに名前をつけるよ
   btn.textContent = "テンプレート保存"; // ★ ボタンに文字を書くよ
-  applyDefaultButtonStyle(btn); // ★ ボタンの見た目をそろえるよ
+  btn.className = "jButton jButton1 jButtonS jsubmit-edit-timecard"; // ★ かっこいい色にするよ
   btn.style.width = "auto"; // ★ ボタンの横幅を自動にするよ
 
   const delBtn = document.createElement("button"); // ★ 消すボタンも作るよ
   delBtn.id = "delete-shift-template-btn"; // ★ ボタンに名前をつけるよ
   delBtn.textContent = "テンプレート削除"; // ★ 消すボタンの文字だよ
-  applyDefaultButtonStyle(delBtn); // ★ 見た目をそろえるよ
+  delBtn.className = "jButton jButton5 jButtonSS jDeny"; // ★ 赤っぽくして注意を出すよ
   delBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
   btn.addEventListener("click", () => {
@@ -231,11 +231,14 @@ function addShiftTemplateSaveButton(sel) {
     box.style.width = "300px";
     box.style.textAlign = "center";
 
-    // ★ 箱の上にタイトルを書くよ
+    // ★ 箱の上にタイトルをかざるよ
+    const header = document.createElement("div");
+    header.className = "popUpTitle editTime cf"; // ★ 見た目をサイトと同じにするよ
     const ttl = document.createElement("div");
-    ttl.textContent = "テンプレート保存";
-    ttl.style.marginBottom = "8px";
-    box.appendChild(ttl);
+    ttl.className = "ttl"; // ★ 文字を入れる場所だよ
+    ttl.textContent = "テンプレート保存"; // ★ モーダルの題名だよ
+    header.appendChild(ttl);
+    box.appendChild(header);
 
     // ★ 名前を入れる場所だよ
     const input = document.createElement("input");
@@ -248,13 +251,13 @@ function addShiftTemplateSaveButton(sel) {
     // ★ 保存ボタンを作るよ
     const okBtn = document.createElement("button");
     okBtn.textContent = "保存";
-    applyDefaultButtonStyle(okBtn);
+    okBtn.className = "jButton jButton1 jButtonS jsubmit-edit-timecard"; // ★ 青いボタンにするよ
     okBtn.style.width = "auto";
 
     // ★ キャンセルボタンを作るよ
     const cancelBtn = document.createElement("button");
     cancelBtn.textContent = "キャンセル";
-    applyDefaultButtonStyle(cancelBtn);
+    cancelBtn.className = "jButton jButton7 jButtonS closeButton FONT666666 close-modal"; // ★ 灰色のボタンだよ
     cancelBtn.style.width = "auto";
 
     // ★ ボタンを横にならべる箱だよ
@@ -332,11 +335,14 @@ function addShiftTemplateSaveButton(sel) {
       box.style.overflowY = "auto";
       box.style.textAlign = "center";
 
-      // ★ 箱の上にタイトルを書くよ
+      // ★ 箱の上にタイトルをかざるよ
+      const header = document.createElement("div");
+      header.className = "popUpTitle editTime cf"; // ★ 見た目をそろえるよ
       const ttl = document.createElement("div");
-      ttl.textContent = "テンプレート削除";
-      ttl.style.marginBottom = "8px";
-      box.appendChild(ttl);
+      ttl.className = "ttl"; // ★ 文字を入れるよ
+      ttl.textContent = "テンプレート削除"; // ★ モーダルの題名だよ
+      header.appendChild(ttl);
+      box.appendChild(header);
 
       names.forEach((n) => {
         const label = document.createElement("label"); // ★ 名前の横にチェックを置くよ
@@ -356,15 +362,15 @@ function addShiftTemplateSaveButton(sel) {
       btnWrap.style.justifyContent = "center";
       btnWrap.style.gap = "10px";
 
-      const okBtn = document.createElement("button"); // ★ 消すボタンだよ
-      okBtn.textContent = "削除";
-      applyDefaultButtonStyle(okBtn);
-      okBtn.style.width = "auto";
+        const okBtn = document.createElement("button"); // ★ 消すボタンだよ
+        okBtn.textContent = "削除";
+        okBtn.className = "jButton jButton5 jButtonSS jDeny"; // ★ 赤いボタンで注意するよ
+        okBtn.style.width = "auto";
 
-      const cancelBtn = document.createElement("button"); // ★ やめるボタンだよ
-      cancelBtn.textContent = "キャンセル";
-      applyDefaultButtonStyle(cancelBtn);
-      cancelBtn.style.width = "auto";
+        const cancelBtn = document.createElement("button"); // ★ やめるボタンだよ
+        cancelBtn.textContent = "キャンセル";
+        cancelBtn.className = "jButton jButton7 jButtonS closeButton FONT666666 close-modal"; // ★ 灰色で落ち着かせるよ
+        cancelBtn.style.width = "auto";
 
       btnWrap.appendChild(okBtn);
       btnWrap.appendChild(cancelBtn);
