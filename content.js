@@ -111,7 +111,9 @@ function collectShiftTemplateData() {
     const cls = Array.from(el.classList).find(
       (c) => c.includes("hour") || c.includes("minute")
     );
-    return { selector: `input.${cls}`, value: el.value };
+    const val = el.value.trim(); // ★ 入力された数字だよ
+    const padded = val ? val.padStart(2, "0") : "00"; // ★ 2けたにそろえるよ
+    return { selector: `input.${cls}`, value: padded };
   });
   const breakInputs = Array.from(
     document.querySelectorAll('div.break-times-data input[type="number"]')
@@ -119,7 +121,9 @@ function collectShiftTemplateData() {
     const cls = Array.from(el.classList).find(
       (c) => c.includes("hour") || c.includes("minute")
     );
-    return { selector: `input.${cls}`, value: el.value };
+    const val = el.value.trim(); // ★ 入力された数字だよ
+    const padded = val ? val.padStart(2, "0") : "00"; // ★ 2けたにそろえるよ
+    return { selector: `input.${cls}`, value: padded };
   });
   return {
     absentHTML,
@@ -203,13 +207,15 @@ function addShiftTemplateSaveButton(sel) {
   const btn = document.createElement("button"); // ★ ボタンを作るよ
   btn.id = "save-shift-template-btn"; // ★ ボタンに名前をつけるよ
   btn.textContent = "テンプレート保存"; // ★ ボタンに文字を書くよ
-  btn.className = "jButton jButton1 jButtonS jsubmit-edit-timecard"; // ★ かっこいい色にするよ
+  applyDefaultButtonStyle(btn); // ★ ボタンをいつもの見た目にするよ
   btn.style.width = "auto"; // ★ ボタンの横幅を自動にするよ
 
   const delBtn = document.createElement("button"); // ★ 消すボタンも作るよ
   delBtn.id = "delete-shift-template-btn"; // ★ ボタンに名前をつけるよ
   delBtn.textContent = "テンプレート削除"; // ★ 消すボタンの文字だよ
-  delBtn.className = "jButton jButton5 jButtonSS jDeny"; // ★ 赤っぽくして注意を出すよ
+  applyDefaultButtonStyle(delBtn); // ★ ボタンをいつもの見た目にするよ
+  delBtn.style.background = "#d9534f"; // ★ 赤色で注意を出すよ
+  delBtn.style.border = "1px solid #d9534f"; // ★ ふちも赤にするよ
   delBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
   btn.addEventListener("click", () => {
@@ -251,14 +257,17 @@ function addShiftTemplateSaveButton(sel) {
     // ★ 保存ボタンを作るよ
     const okBtn = document.createElement("button");
     okBtn.textContent = "保存";
-    okBtn.className = "jButton jButton1 jButtonS jsubmit-edit-timecard"; // ★ 青いボタンにするよ
-    okBtn.style.width = "auto";
+    applyDefaultButtonStyle(okBtn); // ★ ボタンをいつもの見た目にするよ
+    okBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
     // ★ キャンセルボタンを作るよ
     const cancelBtn = document.createElement("button");
     cancelBtn.textContent = "キャンセル";
-    cancelBtn.className = "jButton jButton7 jButtonS closeButton FONT666666 close-modal"; // ★ 灰色のボタンだよ
-    cancelBtn.style.width = "auto";
+    applyDefaultButtonStyle(cancelBtn); // ★ ボタンをいつもの見た目にするよ
+    cancelBtn.style.background = "#ccc"; // ★ 灰色でおだやかにするよ
+    cancelBtn.style.color = "#666"; // ★ 文字も灰色だよ
+    cancelBtn.style.border = "1px solid #ccc"; // ★ ふちも灰色だよ
+    cancelBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
     // ★ ボタンを横にならべる箱だよ
     const btnWrap = document.createElement("div");
@@ -362,15 +371,20 @@ function addShiftTemplateSaveButton(sel) {
       btnWrap.style.justifyContent = "center";
       btnWrap.style.gap = "10px";
 
-        const okBtn = document.createElement("button"); // ★ 消すボタンだよ
-        okBtn.textContent = "削除";
-        okBtn.className = "jButton jButton5 jButtonSS jDeny"; // ★ 赤いボタンで注意するよ
-        okBtn.style.width = "auto";
+      const okBtn = document.createElement("button"); // ★ 消すボタンだよ
+      okBtn.textContent = "削除";
+      applyDefaultButtonStyle(okBtn); // ★ ボタンをいつもの見た目にするよ
+      okBtn.style.background = "#d9534f"; // ★ 赤くして注意するよ
+      okBtn.style.border = "1px solid #d9534f"; // ★ ふちも赤だよ
+      okBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
-        const cancelBtn = document.createElement("button"); // ★ やめるボタンだよ
-        cancelBtn.textContent = "キャンセル";
-        cancelBtn.className = "jButton jButton7 jButtonS closeButton FONT666666 close-modal"; // ★ 灰色で落ち着かせるよ
-        cancelBtn.style.width = "auto";
+      const cancelBtn = document.createElement("button"); // ★ やめるボタンだよ
+      cancelBtn.textContent = "キャンセル";
+      applyDefaultButtonStyle(cancelBtn); // ★ ボタンをいつもの見た目にするよ
+      cancelBtn.style.background = "#ccc"; // ★ 灰色でおだやかにするよ
+      cancelBtn.style.color = "#666"; // ★ 文字も灰色だよ
+      cancelBtn.style.border = "1px solid #ccc"; // ★ ふちも灰色だよ
+      cancelBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
       btnWrap.appendChild(okBtn);
       btnWrap.appendChild(cancelBtn);
