@@ -319,18 +319,27 @@ setInterval(() => {
             });
           chrome.storage.local.get(`savedShiftTemplate_${user}`, (data) => {
             const saved = data[`savedShiftTemplate_${user}`];
-              if (saved) {
-                const has = Array.from(shiftSel.options).some(
-                  (o) => o.value === saved
-                );
-                if (has) {
-                  shiftSel.value = saved;
-                  console.log(`前に選んだ${saved}を復元したよ`); // ★ 前の選択を戻したよ
-                  shiftSel.dispatchEvent(
-                    new Event("change", { bubbles: true })
-                  );
-                }
+            if (saved) {
+              const submitBtn = document.querySelector(
+                "button.jsubmit-edit-timecard"
+              ); // ★ 「提出」ボタンがあるかさがすよ
+              if (!submitBtn) {
+                console.log(
+                  "提出ボタンがないので前の選択を戻さないよ"
+                ); // ★ ボタンがないときは復元しないよ
+                return; // ★ ここでおしまいだよ
               }
+              const has = Array.from(shiftSel.options).some(
+                (o) => o.value === saved
+              );
+              if (has) {
+                shiftSel.value = saved;
+                console.log(`前に選んだ${saved}を復元したよ`); // ★ 前の選択を戻したよ
+                shiftSel.dispatchEvent(
+                  new Event("change", { bubbles: true })
+                );
+              }
+            }
           });
         });
       }
