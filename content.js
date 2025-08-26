@@ -303,20 +303,20 @@ setInterval(() => {
       // ★ 保存したテンプレをもう一度入れるおまじないだよ
       function loadCustomTemplates() {
         chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
-          const templates = res[`customShiftTemplates_${user}`] || {};
-            Object.keys(templates).forEach((name) => {
-              if (
-                !Array.from(shiftSel.options).some(
-                  (o) => o.value === `__ext_${name}`
-                )
-              ) {
-                const opt = document.createElement("option");
-                opt.value = `__ext_${name}`;
-                opt.textContent = name;
-                shiftSel.appendChild(opt);
-                console.log(`テンプレート${name}をプルダウンに追加したよ`); // ★ 追加したことを知らせるよ
-              }
-            });
+          const templates = res[`customShiftTemplates_${user}`] || {}; // ★ 保存したテンプレを全部取るよ
+          Object.keys(templates).forEach((name) => {
+            if (
+              !Array.from(shiftSel.options).some(
+                (o) => o.value === `__ext_${name}`
+              )
+            ) {
+              const opt = document.createElement("option");
+              opt.value = `__ext_${name}`;
+              opt.textContent = name;
+              shiftSel.appendChild(opt);
+              console.log(`テンプレート${name}をプルダウンに追加したよ`); // ★ 追加したことを知らせるよ
+            }
+          });
           chrome.storage.local.get(`savedShiftTemplate_${user}`, (data) => {
             const saved = data[`savedShiftTemplate_${user}`];
             if (saved) {
@@ -327,6 +327,18 @@ setInterval(() => {
                 console.log(
                   "提出ボタンがないので前の選択を戻さないよ"
                 ); // ★ ボタンがないときは復元しないよ
+                return; // ★ ここでおしまいだよ
+              }
+              const name = saved.replace("__ext_", ""); // ★ 名前だけを取り出すよ
+              if (!templates[name]) {
+                chrome.storage.local.remove(
+                  `savedShiftTemplate_${user}`,
+                  () => {
+                    console.log(
+                      `${saved}を忘れるよ`
+                    ); // ★ もう無いテンプレは記録から消すよ
+                  }
+                );
                 return; // ★ ここでおしまいだよ
               }
               const has = Array.from(shiftSel.options).some(
