@@ -234,6 +234,8 @@ function addShiftTemplateSaveButton(sel) {
   });
   const jdate = document.querySelector("div.floatLeft.jdate"); // ★ 日付の場所を見つけるよ
   if (jdate) {
+    jdate.style.display = "inline-block"; // ★ 横に並べても変にならないようにするよ
+    jdate.style.verticalAlign = "middle"; // ★ ボタンと真ん中を合わせるよ
     jdate.insertAdjacentElement("afterend", btn); // ★ 日付の下にボタンを置くよ
   } else {
     sel.parentElement.appendChild(btn); // ★ 見つからなければ元の場所に置くよ
