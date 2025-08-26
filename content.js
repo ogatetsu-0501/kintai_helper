@@ -194,22 +194,22 @@ function applyShiftTemplate(name) {
   });
 }
 
-// ★ セレクト横に保存ボタンをつけるよ
+// ★ 日付の下に保存ボタンを置くよ
 function addShiftTemplateSaveButton(sel) {
-  if (document.getElementById("save-shift-template-btn")) return;
-  const btn = document.createElement("button");
-  btn.id = "save-shift-template-btn";
-  btn.textContent = "テンプレ保存";
-  applyDefaultButtonStyle(btn);
-  btn.style.width = "auto";
+  if (document.getElementById("save-shift-template-btn")) return; // ★ もうあるなら作らないよ
+  const btn = document.createElement("button"); // ★ ボタンを作るよ
+  btn.id = "save-shift-template-btn"; // ★ ボタンに名前をつけるよ
+  btn.textContent = "テンプレ保存"; // ★ ボタンに文字を書くよ
+  applyDefaultButtonStyle(btn); // ★ ボタンの見た目をそろえるよ
+  btn.style.width = "auto"; // ★ ボタンの横幅を自動にするよ
   btn.addEventListener("click", () => {
-    const name = prompt("テンプレート名を入力");
-    if (!name) return;
-    const data = collectShiftTemplateData();
-    const user = getCurrentUserName();
+    const name = prompt("テンプレート名を入力"); // ★ 名前を聞くよ
+    if (!name) return; // ★ 名前がないなら終わりだよ
+    const data = collectShiftTemplateData(); // ★ 今の入力を集めるよ
+    const user = getCurrentUserName(); // ★ ユーザー名を調べるよ
     chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
-      const templates = res[`customShiftTemplates_${user}`] || {};
-      templates[name] = data;
+      const templates = res[`customShiftTemplates_${user}`] || {}; // ★ 前のデータを取るよ
+      templates[name] = data; // ★ 新しいデータを入れるよ
       chrome.storage.local.set(
         { [`customShiftTemplates_${user}`]: templates },
         () => {
@@ -218,18 +218,23 @@ function addShiftTemplateSaveButton(sel) {
               (o) => o.value === `__ext_${name}`
             )
           ) {
-            const opt = document.createElement("option");
-            opt.value = `__ext_${name}`;
-            opt.textContent = name;
-            sel.appendChild(opt);
+            const opt = document.createElement("option"); // ★ 新しい選択肢を作るよ
+            opt.value = `__ext_${name}`; // ★ データの名前を入れるよ
+            opt.textContent = name; // ★ 目に見える名前を入れるよ
+            sel.appendChild(opt); // ★ 選べるようにするよ
           }
-          sel.value = `__ext_${name}`;
-          sel.dispatchEvent(new Event("change", { bubbles: true }));
+          sel.value = `__ext_${name}`; // ★ 今の選択を新しいものにするよ
+          sel.dispatchEvent(new Event("change", { bubbles: true })); // ★ 変わったことを知らせるよ
         }
       );
     });
   });
-  sel.parentElement.appendChild(btn);
+  const jdate = document.querySelector("div.floatLeft.jdate"); // ★ 日付の場所を見つけるよ
+  if (jdate) {
+    jdate.insertAdjacentElement("afterend", btn); // ★ 日付の下にボタンを置くよ
+  } else {
+    sel.parentElement.appendChild(btn); // ★ 見つからなければ元の場所に置くよ
+  }
 }
 
 // ====== テーブル監視 ======
