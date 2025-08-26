@@ -330,7 +330,8 @@ setInterval(() => {
                 return; // ★ ここでおしまいだよ
               }
               const name = saved.replace("__ext_", ""); // ★ 名前だけを取り出すよ
-              if (!templates[name]) {
+              if (saved.startsWith("__ext_") && !templates[name]) {
+                // ★ カスタムテンプレがなくなったときは記録を消すよ
                 chrome.storage.local.remove(
                   `savedShiftTemplate_${user}`,
                   () => {
@@ -341,9 +342,16 @@ setInterval(() => {
                 );
                 return; // ★ ここでおしまいだよ
               }
-              const has = Array.from(shiftSel.options).some(
+              let has = Array.from(shiftSel.options).some(
                 (o) => o.value === saved
-              );
+              ); // ★ 同じ値があるか調べるよ
+              if (!has && !saved.startsWith("__ext_")) {
+                const opt = document.createElement("option"); // ★ 新しい選択肢を作るよ
+                opt.value = saved;
+                opt.textContent = saved;
+                shiftSel.appendChild(opt); // ★ プルダウンに入れるよ
+                has = true; // ★ 追加したからあることにするよ
+              }
               if (has) {
                 shiftSel.value = saved;
                 console.log(`前に選んだ${saved}を復元したよ`); // ★ 前の選択を戻したよ
