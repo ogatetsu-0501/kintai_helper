@@ -250,6 +250,7 @@ function addShiftTemplateSaveButton(sel) {
     header.style.margin = "0 0 10px"; // ★ 下にちょっとすき間をあけるよ
     header.style.position = "sticky"; // ★ スクロールしても題名が上にくっつくよ
     header.style.top = "0"; // ★ いちばん上に固定するよ
+    header.style.zIndex = "1"; // ★ ほかの部分より前に出すよ
     const ttl = document.createElement("div");
     ttl.className = "ttl"; // ★ 文字を入れる場所だよ
     ttl.textContent = "テンプレート保存"; // ★ モーダルの題名だよ
@@ -367,6 +368,7 @@ function addShiftTemplateSaveButton(sel) {
       header.style.margin = "0 0 10px"; // ★ 下にすき間をあけるよ
       header.style.position = "sticky"; // ★ スクロールしても題名が上にくっつくよ
       header.style.top = "0"; // ★ いちばん上に固定するよ
+      header.style.zIndex = "1"; // ★ ほかの部分より前に出すよ
       const ttl = document.createElement("div");
       ttl.className = "ttl"; // ★ 文字を入れるよ
       ttl.textContent = "テンプレート削除"; // ★ モーダルの題名だよ
