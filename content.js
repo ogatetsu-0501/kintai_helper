@@ -213,31 +213,94 @@ function addShiftTemplateSaveButton(sel) {
   delBtn.style.width = "auto"; // ★ 横幅を自動にするよ
 
   btn.addEventListener("click", () => {
-    const name = prompt("テンプレート名を入力"); // ★ 名前を聞くよ
-    if (!name) return; // ★ 名前がないなら終わりだよ
-    const data = collectShiftTemplateData(); // ★ 今の入力を集めるよ
-    const user = getCurrentUserName(); // ★ ユーザー名を調べるよ
-    chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
-      const templates = res[`customShiftTemplates_${user}`] || {}; // ★ 前のデータを取るよ
-      templates[name] = data; // ★ 新しいデータを入れるよ (同じ名前なら上書きだよ)
-      chrome.storage.local.set(
-        { [`customShiftTemplates_${user}`]: templates },
-        () => {
-          const existOpt = Array.from(sel.options).find(
-            (o) => o.value === `__ext_${name}`
-          ); // ★ もうある選択肢をさがすよ
-          if (!existOpt) {
-            const opt = document.createElement("option"); // ★ 新しい選択肢を作るよ
-            opt.value = `__ext_${name}`; // ★ データの名前を入れるよ
-            opt.textContent = name; // ★ 目に見える名前を入れるよ
-            sel.appendChild(opt); // ★ 選べるようにするよ
-          } else {
-            existOpt.textContent = name; // ★ 文字を新しくするよ
+    // ★ まずは画面を暗くするよ
+    const overlay = document.createElement("div");
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.right = "0";
+    overlay.style.bottom = "0";
+    overlay.style.background = "rgba(0,0,0,0.5)";
+    overlay.style.zIndex = "10000";
+
+    // ★ 真ん中に置く箱をつくるよ
+    const box = document.createElement("div");
+    box.style.background = "#fff";
+    box.style.padding = "10px";
+    box.style.margin = "50px auto";
+    box.style.width = "300px";
+    box.style.textAlign = "center";
+
+    // ★ 箱の上にタイトルを書くよ
+    const ttl = document.createElement("div");
+    ttl.textContent = "テンプレート保存";
+    ttl.style.marginBottom = "8px";
+    box.appendChild(ttl);
+
+    // ★ 名前を入れる場所だよ
+    const input = document.createElement("input");
+    input.type = "text";
+    input.style.width = "100%";
+    input.style.boxSizing = "border-box";
+    input.style.marginBottom = "10px";
+    box.appendChild(input);
+
+    // ★ 保存ボタンを作るよ
+    const okBtn = document.createElement("button");
+    okBtn.textContent = "保存";
+    applyDefaultButtonStyle(okBtn);
+    okBtn.style.width = "auto";
+
+    // ★ キャンセルボタンを作るよ
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "キャンセル";
+    applyDefaultButtonStyle(cancelBtn);
+    cancelBtn.style.width = "auto";
+
+    // ★ ボタンを横にならべる箱だよ
+    const btnWrap = document.createElement("div");
+    btnWrap.style.display = "flex";
+    btnWrap.style.justifyContent = "center";
+    btnWrap.style.gap = "10px";
+    btnWrap.appendChild(okBtn);
+    btnWrap.appendChild(cancelBtn);
+    box.appendChild(btnWrap);
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay); // ★ 画面に出すよ
+
+    cancelBtn.addEventListener("click", () => {
+      overlay.remove(); // ★ 何もしないで閉じるよ
+    });
+
+    okBtn.addEventListener("click", () => {
+      const name = input.value.trim(); // ★ 入力された名前を取るよ
+      if (!name) return; // ★ からっぽなら終わりだよ
+      const data = collectShiftTemplateData(); // ★ 今の入力を集めるよ
+      const user = getCurrentUserName(); // ★ ユーザー名を調べるよ
+      chrome.storage.local.get(`customShiftTemplates_${user}`, (res) => {
+        const templates = res[`customShiftTemplates_${user}`] || {}; // ★ 前のデータを取るよ
+        templates[name] = data; // ★ 新しいデータを入れるよ
+        chrome.storage.local.set(
+          { [`customShiftTemplates_${user}`]: templates },
+          () => {
+            const existOpt = Array.from(sel.options).find(
+              (o) => o.value === `__ext_${name}`
+            ); // ★ もうある選択肢をさがすよ
+            if (!existOpt) {
+              const opt = document.createElement("option"); // ★ 新しい選択肢を作るよ
+              opt.value = `__ext_${name}`; // ★ データの名前を入れるよ
+              opt.textContent = name; // ★ 目に見える名前を入れるよ
+              sel.appendChild(opt); // ★ 選べるようにするよ
+            } else {
+              existOpt.textContent = name; // ★ 文字を新しくするよ
+            }
+            sel.value = `__ext_${name}`; // ★ 今の選択を新しいものにするよ
+            sel.dispatchEvent(new Event("change", { bubbles: true })); // ★ 変わったことを知らせるよ
+            overlay.remove(); // ★ 保存したら画面を閉じるよ
           }
-          sel.value = `__ext_${name}`; // ★ 今の選択を新しいものにするよ
-          sel.dispatchEvent(new Event("change", { bubbles: true })); // ★ 変わったことを知らせるよ
-        }
-      );
+        );
+      });
     });
   });
 
@@ -267,6 +330,13 @@ function addShiftTemplateSaveButton(sel) {
       box.style.width = "300px";
       box.style.maxHeight = "80%";
       box.style.overflowY = "auto";
+      box.style.textAlign = "center";
+
+      // ★ 箱の上にタイトルを書くよ
+      const ttl = document.createElement("div");
+      ttl.textContent = "テンプレート削除";
+      ttl.style.marginBottom = "8px";
+      box.appendChild(ttl);
 
       names.forEach((n) => {
         const label = document.createElement("label"); // ★ 名前の横にチェックを置くよ
@@ -279,12 +349,26 @@ function addShiftTemplateSaveButton(sel) {
         box.appendChild(document.createElement("br"));
       });
 
+      // ★ ボタンを横にならべる箱だよ
+      const btnWrap = document.createElement("div");
+      btnWrap.style.marginTop = "10px";
+      btnWrap.style.display = "flex";
+      btnWrap.style.justifyContent = "center";
+      btnWrap.style.gap = "10px";
+
       const okBtn = document.createElement("button"); // ★ 消すボタンだよ
       okBtn.textContent = "削除";
+      applyDefaultButtonStyle(okBtn);
+      okBtn.style.width = "auto";
+
       const cancelBtn = document.createElement("button"); // ★ やめるボタンだよ
       cancelBtn.textContent = "キャンセル";
-      box.appendChild(okBtn);
-      box.appendChild(cancelBtn);
+      applyDefaultButtonStyle(cancelBtn);
+      cancelBtn.style.width = "auto";
+
+      btnWrap.appendChild(okBtn);
+      btnWrap.appendChild(cancelBtn);
+      box.appendChild(btnWrap);
 
       overlay.appendChild(box);
       document.body.appendChild(overlay); // ★ 画面に出すよ
