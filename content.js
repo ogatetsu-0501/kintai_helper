@@ -1199,7 +1199,12 @@ setInterval(() => {
       border-radius: 50%;
       box-sizing: border-box;
     }
-
+    
+    /* 選ばれたときは枠を水色にするよ */
+    .type_absent .radioCheckWrapper input[type="radio"]:checked + label::before,
+    .type_absent .radioCheckWrapper input[type="checkbox"]:checked + label::before {
+      border: 1px solid #6bd5e5;         /* 枠を水色にするよ */
+    }
 
     /* キーボード操作のフォーカス枠（元にあるならそちらが勝つよ） */
     .type_absent .radioCheckWrapper input[type="radio"]:focus + label::before {
@@ -1299,7 +1304,13 @@ setInterval(() => {
       /* 既存の padding-left:42px はサイトのCSSに任せるよ（そのままでOK） */
     }
 
-    /* C) 中央のチェックマークだけを描くよ（参考に頂いた方式そのまま） */
+    /* C) 選ばれたときは枠を水色にするよ */
+    .type_absent .radioCheckWrapper input[type="radio"]:checked + label::before,
+    .type_absent .radioCheckWrapper input[type="checkbox"]:checked + label::before {
+      border: 1px solid #6bd5e5;      /* 枠を水色にするよ */
+    }
+
+    /* D) 中央のチェックマークだけを描くよ（参考に頂いた方式そのまま） */
     .type_absent .radioCheckWrapper input[type="radio"]:checked + label::after,
     .type_absent .radioCheckWrapper input[type="checkbox"]:checked + label::after{
       content: "";                 /* 疑似要素を出すよ */
@@ -1319,7 +1330,7 @@ setInterval(() => {
       z-index: 1;                  /* 一番前に出すよ */
     }
 
-    /* D) 古い「●ドット」が残っていても消すよ */
+    /* E) 古い「●ドット」が残っていても消すよ */
     .type_absent .radioCheckWrapper input[type="radio"]:checked + label::after{
       background: none !important;
       border-right: none !important;
