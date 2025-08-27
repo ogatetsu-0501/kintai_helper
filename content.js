@@ -1200,24 +1200,31 @@ setInterval(() => {
       box-sizing: border-box;
     }
 
-    /* 内側のしるし：checked時のドットは“元のCSS”に任せる
-       もし以前に :after を消してしまっている場合に備え、最低限の復旧だけ用意 */
-    .type_absent .radioCheckWrapper input[type="radio"]:checked + label::after {
-      content: "" !important;            /* 以前の none を上書きして出せるようにするよ */
-      position: absolute;
-      left: 9px;                         /* 30px外枠の中央に来る位置だよ */
-      top: 50%;
-      width: 12px;
-      height: 12px;
-      margin-top: -6px;
-      background: currentColor;          /* サイトの文字色に追随するよ（元色があればそちらが勝つ） */
-      border-radius: 50%;
-    }
 
     /* キーボード操作のフォーカス枠（元にあるならそちらが勝つよ） */
     .type_absent .radioCheckWrapper input[type="radio"]:focus + label::before {
       outline: 2px solid #2196f3;
       outline-offset: 2px;
+    }
+
+    /* ここから追加：チェックマークを描くだけだよ */
+    .type_absent .radioCheckWrapper input[type="radio"]:checked + label::after {
+      /* 小さなチェックを描くよ */
+      content: "" !important;            /* 疑似要素を出すよ */
+      position: absolute;                /* ラベルの中で位置を決めるよ */
+      top: 50%;                          /* たてのまんなかに置くよ */
+      left: 8px;                         /* 30px丸の内側でちょうどいい位置だよ */
+      width: 12px;                       /* チェックの横幅だよ */
+      height: 6px;                       /* チェックの高さだよ */
+      margin-top: -3px;                  /* まんなかに見えるよう微調整するよ */
+      border-right: 2px solid #6bd5e5;   /* 右の線だよ（既定色） */
+      border-bottom: 2px solid #6bd5e5;  /* 下の線だよ（既定色） */
+      transform: rotate(45deg);          /* 斜めにしてチェックにするよ */
+      box-sizing: border-box;            /* にじみを少なくするよ */
+      pointer-events: none;              /* クリックできなくするよ */
+      background: transparent;           /* うしろを透明にするよ */
+      border-radius: 0;                  /* 四角いままにするよ */
+      z-index: 1;                        /* 外の丸より前に出すよ */
     }
   `;
 
