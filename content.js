@@ -1165,7 +1165,7 @@ setInterval(() => {
       }
     });
     // 何個なおしたか教えるログだよ
-    console.log(`ラジオボタンのすきまを${radios.length}個直したよ`);
+    // console.log(`ラジオボタンのすきまを${radios.length}個直したよ`);
   }
 
   // ページが読み込まれたときに一度だけすきまを直すよ
@@ -1179,11 +1179,11 @@ setInterval(() => {
           // 追加されたものがラジオボタンなら、その場所を直すよ
           if (node.matches && node.matches('input[type="radio"]')) {
             // 新しいラジオボタンを見つけたときのログだよ
-            console.log("新しいラジオボタンを見つけたよ");
+            // console.log("新しいラジオボタンを見つけたよ");
             fixRadioSpacing(node.parentNode);
           } else {
             // そうでなければ中にラジオボタンがないか調べて直すよ
-            console.log("新しい場所にラジオボタンがあるか調べるよ");
+            // console.log("新しい場所にラジオボタンがあるか調べるよ");
             fixRadioSpacing(node);
           }
         }
