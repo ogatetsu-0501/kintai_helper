@@ -96,6 +96,17 @@ function fixRadioLabelOverlap() {
     wrap.style.height = "auto";
     wrap.style.display = "flex";
     wrap.style.alignItems = "center";
+
+    // ★ ボタンの右にちょっとだけすきまを作るよ
+    wrap.querySelectorAll('input[type="radio"]').forEach((btn) => {
+      btn.style.marginRight = "4px";
+    });
+
+    // ★ 文字がボタンのすぐ右から始まるようにするよ
+    wrap.querySelectorAll("label").forEach((lab) => {
+      lab.style.marginLeft = "0";
+      lab.style.marginRight = "10px";
+    });
   });
 }
 
