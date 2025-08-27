@@ -462,11 +462,10 @@ function addShiftTemplateSaveButton(sel) {
 
       // ★ ボタンを横にならべる箱だよ
       const btnWrap = document.createElement("div");
-      btnWrap.style.marginTop = "10px";
-      btnWrap.style.display = "flex";
-      btnWrap.style.justifyContent = "space-between"; // ★ 左右のはしに置くよ
-      btnWrap.style.gap = "10px";
-      btnWrap.style.width = "100%"; // ★ 箱いっぱいの横幅にするよ
+      btnWrap.style.marginTop = "10px"; // ★ 上にすき間をあけるよ
+      btnWrap.style.display = "flex"; // ★ 横にならべるよ
+      btnWrap.style.justifyContent = "center"; // ★ 真ん中にそろえるよ
+      btnWrap.style.gap = "10px"; // ★ ボタンのあいだにすき間をあけるよ
 
       const okBtn = document.createElement("button"); // ★ 消すボタンだよ
       okBtn.textContent = "削除";
