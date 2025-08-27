@@ -247,7 +247,7 @@ function addShiftTemplateSaveButton(sel) {
     header.style.background = "#34495e"; // ★ 見出しをくらい色にするよ
     header.style.padding = "15px 0"; // ★ 上と下にすき間をつくるよ
     header.style.textAlign = "center"; // ★ 文字をまんなかにするよ
-    header.style.margin = "0 0 10px"; // ★ 下にちょっとすき間をあけるよ
+    header.style.margin = "0 -10px 10px"; // ★ 横に広げて箱と同じ幅にするよ
     header.style.position = "sticky"; // ★ スクロールしても題名が上にくっつくよ
     header.style.top = "0"; // ★ いちばん上に固定するよ
     header.style.zIndex = "1"; // ★ ほかの部分より前に出すよ
@@ -295,6 +295,7 @@ function addShiftTemplateSaveButton(sel) {
 
     overlay.appendChild(box);
     document.body.appendChild(overlay); // ★ 画面に出すよ
+    input.focus(); // ★ すぐに入力できるようにするよ
 
     cancelBtn.addEventListener("click", () => {
       overlay.remove(); // ★ 何もしないで閉じるよ
@@ -365,7 +366,7 @@ function addShiftTemplateSaveButton(sel) {
       header.style.background = "#34495e"; // ★ 見出しをくらい色にするよ
       header.style.padding = "15px 0"; // ★ 上と下にすき間をつくるよ
       header.style.textAlign = "center"; // ★ 文字をまんなかにするよ
-      header.style.margin = "0 0 10px"; // ★ 下にすき間をあけるよ
+      header.style.margin = "0 -10px 10px"; // ★ 横に広げて箱と同じ幅にするよ
       header.style.position = "sticky"; // ★ スクロールしても題名が上にくっつくよ
       header.style.top = "0"; // ★ いちばん上に固定するよ
       header.style.zIndex = "1"; // ★ ほかの部分より前に出すよ
@@ -376,23 +377,96 @@ function addShiftTemplateSaveButton(sel) {
       header.appendChild(ttl);
       box.appendChild(header);
 
+      const styleId = "template-delete-style"; // ★ スタイルの名前だよ
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement("style"); // ★ 見た目をきめるよ
+        style.id = styleId; // ★ 同じものを二度作らないための札だよ
+        style.textContent = `
+          .template-delete-list {
+            display: grid; /* ★ 横に二列ならべるよ */
+            grid-template-columns: 1fr 1fr; /* ★ ひとしく二つに分けるよ */
+            gap: 8px 16px; /* ★ すき間をあけるよ */
+            justify-content: center; /* ★ まんなかに置くよ */
+            justify-items: start; /* ★ 左そろえにするよ */
+            align-items: center; /* ★ たてのまんなかにするよ */
+            margin-bottom: 10px; /* ★ 下にちょっとすき間を作るよ */
+          }
+          .template-delete-item {
+            position: relative; /* ★ 中の配置の基準だよ */
+            display: inline-flex; /* ★ 横に文字と丸をならべるよ */
+            align-items: center; /* ★ 上下まんなかにそろえるよ */
+          }
+          .template-delete-item input[type="checkbox"] {
+            position: absolute; /* ★ 本当のチェックを隠すよ */
+            opacity: 0; /* ★ 見えなくするけど働くよ */
+            width: 18px; /* ★ 丸の横幅だよ */
+            height: 18px; /* ★ 丸の高さだよ */
+            left: 0; /* ★ 左にくっつけるよ */
+            top: 50%; /* ★ たてのまんなかに置くよ */
+            margin-top: -9px; /* ★ まんなかに見えるようにするよ */
+          }
+          .template-delete-item span {
+            position: relative; /* ★ 疑似要素の置き場だよ */
+            padding-left: 30px; /* ★ 丸(18px)とすき間だよ */
+            line-height: 18px; /* ★ 文字の高さを丸に合わせるよ */
+          }
+          .template-delete-item span::before {
+            content: ""; /* ★ からの箱で丸を作るよ */
+            position: absolute; /* ★ 文字の左に置くよ */
+            left: 0; /* ★ いちばん左だよ */
+            top: 50%; /* ★ たてのまんなかだよ */
+            width: 18px; /* ★ 丸の横幅だよ */
+            height: 18px; /* ★ 丸の高さだよ */
+            margin-top: -9px; /* ★ まんなかに見えるようにするよ */
+            background: #fff; /* ★ うしろは白だよ */
+            border: 1px solid #dee2e5; /* ★ うすい灰色のふちだよ */
+            border-radius: 50%; /* ★ まん丸にするよ */
+            box-sizing: border-box; /* ★ はみ出さないようにするよ */
+          }
+          .template-delete-item input[type="checkbox"]:checked + span::before {
+            border: 1px solid #6bd5e5; /* ★ えらんだら青いふちだよ */
+          }
+          .template-delete-item input[type="checkbox"]:checked + span::after {
+            content: ""; /* ★ チェックの形を描くよ */
+            position: absolute; /* ★ どこに出すか決めるよ */
+            top: 50%; /* ★ たてのまんなかだよ */
+            left: 4px; /* ★ 丸のまんなかに合わせるよ */
+            width: 10px; /* ★ チェックの横幅だよ */
+            height: 6px; /* ★ チェックの高さだよ */
+            margin-top: -3px; /* ★ 上下のまんなかに見せるよ */
+            border-left: 2px solid #6bd5e5; /* ★ 左の線だよ */
+            border-bottom: 2px solid #6bd5e5; /* ★ 下の線だよ */
+            transform: rotate(-45deg); /* ★ 斜めにしてチェックを作るよ */
+            box-sizing: border-box; /* ★ はみ出さないようにするよ */
+            display: block; /* ★ 形をしっかり見せるよ */
+          }
+        `;
+        box.appendChild(style); // ★ スタイルを箱に入れるよ
+      }
+
+      const listWrap = document.createElement("div"); // ★ チェックの一覧を入れる箱だよ
+      listWrap.className = "template-delete-list"; // ★ 二列にするためのクラスだよ
+
       names.forEach((n) => {
-        const label = document.createElement("label"); // ★ 名前の横にチェックを置くよ
-        const chk = document.createElement("input");
-        chk.type = "checkbox";
-        chk.value = n;
-        label.appendChild(chk);
-        label.appendChild(document.createTextNode(n));
-        box.appendChild(label);
-        box.appendChild(document.createElement("br"));
+        const label = document.createElement("label"); // ★ 名前と丸を一つのセットにするよ
+        label.className = "template-delete-item"; // ★ 見た目を決めるクラスだよ
+        const chk = document.createElement("input"); // ★ 本当のチェックだよ
+        chk.type = "checkbox"; // ★ 何個でも選べるようにするよ
+        chk.value = n; // ★ 名前を値として持たせるよ
+        const span = document.createElement("span"); // ★ 名前を書く場所だよ
+        span.textContent = n; // ★ 文字を入れるよ
+        label.appendChild(chk); // ★ 丸をセットに入れるよ
+        label.appendChild(span); // ★ 名前もセットに入れるよ
+        listWrap.appendChild(label); // ★ 作ったセットを一覧に足すよ
       });
+      box.appendChild(listWrap); // ★ 一覧を箱に入れるよ
 
       // ★ ボタンを横にならべる箱だよ
       const btnWrap = document.createElement("div");
-      btnWrap.style.marginTop = "10px";
-      btnWrap.style.display = "flex";
-      btnWrap.style.justifyContent = "center";
-      btnWrap.style.gap = "10px";
+      btnWrap.style.marginTop = "10px"; // ★ 上にすき間をあけるよ
+      btnWrap.style.display = "flex"; // ★ 横にならべるよ
+      btnWrap.style.justifyContent = "center"; // ★ 真ん中にそろえるよ
+      btnWrap.style.gap = "10px"; // ★ ボタンのあいだにすき間をあけるよ
 
       const okBtn = document.createElement("button"); // ★ 消すボタンだよ
       okBtn.textContent = "削除";
@@ -1086,3 +1160,261 @@ setInterval(() => {
     textarea.parentElement.appendChild(wrapper);
   }
 }, 500);
+
+// ===== ラジオボタンの重なりを直すよ =====
+(function () {
+  // ラジオボタンとそのラベルの間にすきまをあける関数だよ
+  function fixRadioSpacing(root = document) {
+    // まず root の中にある全部のラジオボタンを探すよ
+    const radios = root.querySelectorAll('input[type="radio"]');
+    radios.forEach((radio) => {
+      // ラジオボタンのすぐ後ろにあるラベルを見つけるよ
+      const label = radio.nextElementSibling;
+      if (label && label.tagName === 'LABEL') {
+        // ラジオボタンとラベルが重ならないように余白をつけるよ
+        radio.style.marginRight = '4px';
+        label.style.marginLeft = '0px';
+        label.style.marginRight = '10px';
+        label.style.display = 'inline-block';
+      }
+    });
+    // 何個なおしたか教えるログだよ
+    console.log(`ラジオボタンのすきまを${radios.length}個直したよ`);
+  }
+
+  // ページが読み込まれたときに一度だけすきまを直すよ
+  fixRadioSpacing();
+
+  // 新しいラジオボタンが追加されたら気づいて直す見張り番だよ
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((m) => {
+      m.addedNodes.forEach((node) => {
+        if (node.nodeType === 1) {
+          // 追加されたものがラジオボタンなら、その場所を直すよ
+          if (node.matches && node.matches('input[type="radio"]')) {
+            // 新しいラジオボタンを見つけたときのログだよ
+            console.log('新しいラジオボタンを見つけたよ');
+            fixRadioSpacing(node.parentNode);
+          } else {
+            // そうでなければ中にラジオボタンがないか調べて直すよ
+            console.log('新しい場所にラジオボタンがあるか調べるよ');
+            fixRadioSpacing(node);
+          }
+        }
+      });
+    });
+  });
+
+  // ページ全体を見張って、新しいラジオボタンを見つけたら教えてもらうよ
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
+
+// ===== ラジオは「擬似要素の丸」を表示、文字と重ならないように整えるよ =====
+// ★ 既存HTML/JSは一切変えず、見た目だけを後勝ちCSSで直すよ
+(function () {
+  // ① 1回だけ入れるための印だよ
+  const STYLE_ID = "kintai-radio-use-original-circle";
+
+  // ② 後勝ちで効くCSSだよ（!important で確実に上書きするよ）
+  //   ・.radioCheckWrapper の height:10px を打ち消して自動に戻す
+  //   ・狭い幅では折り返し（wrap）で物理的な重なりを防ぐ
+  //   ・label の左パディング/行高を「元デザイン（丸30px）」に合わせる
+  //   ・以前の「content:none !important」を上書きして、擬似要素を“出す”
+  //   ・ネイティブ input は視覚的に隠して二重表示を防ぐ（クリックは label でOK）
+  const CSS = `
+    /* ─ ラッパー：高さ不足を解消し、狭幅では折り返す ─ */
+    .type_absent .radioCheckWrapper {
+      display: flex !important;          /* 横に並べるよ */
+      align-items: center !important;    /* 上下まんなかにそろえるよ */
+      flex-wrap: wrap !important;        /* せまい時は次の行におりかえすよ */
+      height: auto !important;           /* inline の height:10px を打ち消すよ */
+      min-height: 32px !important;       /* 丸(30px)がつぶれない高さだよ */
+      gap: 6px 16px !important;          /* 要素どうしのすき間だよ */
+    }
+
+    /* ─ ネイティブ input は見えないだけにして機能は残す（ダブル表示を防ぐ）─ */
+    .type_absent .radioCheckWrapper input[type="radio"] {
+      position: absolute !important;     /* レイアウトから外すよ */
+      opacity: 0 !important;             /* 透明にするよ */
+      width: 1px !important;
+      height: 1px !important;
+      margin: 0 !important;
+      pointer-events: none !important;   /* クリックはラベルに任せるよ */
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      clip: rect(0 0 0 0) !important;
+      clip-path: inset(50%) !important;
+    }
+
+    /* ─ ラベル：元デザインの丸(30px)に合わせて左余白と行高をそろえる ─ */
+    .type_absent .radioCheckWrapper input[type="radio"] + label {
+      position: relative !important;
+      display: inline-block !important;
+      padding-left: 42px !important;     /* ← 既存CSSどおり（丸30px + 余白） */
+      line-height: 30px !important;      /* ← 丸と同じ高さにするよ */
+      vertical-align: middle !important;
+      /* 既存の .mr40 はそのまま使う（ここでは上書きしない） */
+      white-space: normal !important;    /* せまい時は折り返せるようにするよ */
+    }
+
+    /* ── ここがポイント：擬似要素を“出す”指定（元デザインを維持）── */
+    /* 外枠の丸：サイト既存の見た目に合わせて 30px / 白背景 / 灰枠 */
+    .type_absent .radioCheckWrapper input[type="radio"] + label::before {
+      content: "" !important;            /* 以前の content:none を打ち消すよ */
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 30px;
+      height: 30px;
+      margin-top: -15px;                 /* 上下まんなかに置くよ */
+      background: #fff;
+      border: 1px solid #dee2e5;         /* 既存CSSと同じ枠色だよ */
+      border-radius: 50%;
+      box-sizing: border-box;
+    }
+    
+    /* 選ばれたときは枠を水色にするよ */
+    .type_absent .radioCheckWrapper input[type="radio"]:checked + label::before,
+    .type_absent .radioCheckWrapper input[type="checkbox"]:checked + label::before {
+      border: 1px solid #6bd5e5;         /* 枠を水色にするよ */
+    }
+
+    /* キーボード操作のフォーカス枠（元にあるならそちらが勝つよ） */
+    .type_absent .radioCheckWrapper input[type="radio"]:focus + label::before {
+      outline: 2px solid #2196f3;
+      outline-offset: 2px;
+    }
+
+    /* ここから追加：チェックマークを描くだけだよ */
+    .type_absent .radioCheckWrapper input[type="radio"]:checked + label::after {
+      /* 小さなチェックを描くよ */
+      content: "" !important;            /* 疑似要素を出すよ */
+      position: absolute;                /* ラベルの中で位置を決めるよ */
+      top: 50%;                          /* たてのまんなかに置くよ */
+      left: 8px;                         /* 30px丸の内側でちょうどいい位置だよ */
+      width: 12px;                       /* チェックの横幅だよ */
+      height: 6px;                       /* チェックの高さだよ */
+      margin-top: -3px;                  /* まんなかに見えるよう微調整するよ */
+      border-right: 2px solid #6bd5e5;   /* 右の線だよ（既定色） */
+      border-bottom: 2px solid #6bd5e5;  /* 下の線だよ（既定色） */
+      transform: rotate(45deg);          /* 斜めにしてチェックにするよ */
+      box-sizing: border-box;            /* にじみを少なくするよ */
+      pointer-events: none;              /* クリックできなくするよ */
+      background: transparent;           /* うしろを透明にするよ */
+      border-radius: 0;                  /* 四角いままにするよ */
+      z-index: 1;                        /* 外の丸より前に出すよ */
+    }
+  `;
+
+  // ③ CSS を 1 回だけ入れるよ
+  function injectCssOnce() {
+    const exists = document.getElementById(STYLE_ID);
+    if (exists) return;
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = CSS;
+    // <head> がなくても確実に効くように <html> 直下に入れるよ
+    document.documentElement.appendChild(style);
+  }
+
+  // ④ いまある要素にも高さの直しをするよ
+  function fixInlineHeight(root = document) {
+    const wrappers = root.querySelectorAll(".type_absent .radioCheckWrapper");
+    wrappers.forEach((w) => {
+      w.style.setProperty("height", "auto", "important");
+      w.style.setProperty("min-height", "32px", "important");
+      w.style.setProperty("display", "flex", "important");
+      w.style.setProperty("align-items", "center", "important");
+      w.style.setProperty("flex-wrap", "wrap", "important");
+      w.style.setProperty("gap", "6px 16px", "important");
+    });
+  }
+
+  // ⑤ 今すぐ適用するよ
+  function applyNow(root = document) {
+    injectCssOnce();
+    fixInlineHeight(root);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => applyNow());
+  } else {
+    applyNow();
+  }
+
+  // ⑥ あとから追加された要素にも自動で適用する見張り番だよ
+  const mo = new MutationObserver((muts) => {
+    for (const m of muts) {
+      for (const n of m.addedNodes) {
+        if (n && n.nodeType === 1) applyNow(n);
+      }
+    }
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+})();
+// ===== 元デザインの「✔」で表示し、重なりだけ直す 最小追記 =====
+// ★ 小学生でもわかるコメント付きだよ
+(function () {
+  // ① 今回使うスタイルの名前だよ
+  const ID = "kintai-radio-keep-default-v3";
+  // ② 同じ名前のスタイルがすでにあったら何もしないよ
+  if (document.getElementById(ID)) return;
+
+  // ③ CSSを書いた紙を作るよ
+  const style = document.createElement("style");
+  style.id = ID;
+  style.textContent = `
+    /* ── .type_absent の中だけ直すよ（ほかに迷惑をかけないため）── */
+
+    /* A) ラッパーが高さ10pxでつぶれないようにするよ */
+    .type_absent .radioCheckWrapper{
+      height: auto !important;         /* 高さは自動にするよ */
+      min-height: 32px !important;     /* 丸(30px)より少し余裕を持たせるよ */
+    }
+
+    /* B) ラベルの行高を丸(30px)に合わせて重なりを防ぐよ */
+    .type_absent .radioCheckWrapper input[type="radio"] + label{
+      line-height: 30px !important;    /* 文字が丸にかぶらないようにするよ */
+      /* 既存の padding-left:42px はサイトのCSSに任せるよ（そのままでOK） */
+    }
+
+    /* C) 選ばれたときは枠を水色にするよ */
+    .type_absent .radioCheckWrapper input[type="radio"]:checked + label::before,
+    .type_absent .radioCheckWrapper input[type="checkbox"]:checked + label::before {
+      border: 1px solid #6bd5e5;      /* 枠を水色にするよ */
+    }
+
+    /* D) 中央のチェックマークだけを描くよ（参考に頂いた方式そのまま） */
+    .type_absent .radioCheckWrapper input[type="radio"]:checked + label::after,
+    .type_absent .radioCheckWrapper input[type="checkbox"]:checked + label::after{
+      content: "";                 /* 疑似要素を出すよ */
+      position: absolute;          /* ぴったり場所を決めるよ */
+      top: 50%;                    /* たての真ん中に置くよ */
+      left: 8px;                   /* 左から少しの位置だよ */
+      width: 14px;                 /* ✔の横幅だよ */
+      height: 8px;                 /* ✔の高さだよ */
+      margin-top: -6px;            /* 真ん中に見えるようにするよ */
+      box-sizing: border-box;      /* 太さでずれないようにするよ */
+      border-left: 2px solid #65d3e4;  /* 左の線の色と太さだよ */
+      border-bottom: 2px solid #65d3e4;/* 下の線の色と太さだよ */
+      -webkit-transform: rotate(-45deg); /* 斜めにして✔の形にするよ */
+      -ms-transform: rotate(-45deg);
+      transform: rotate(-45deg);
+      pointer-events: none;        /* クリックの邪魔をしないよ */
+      z-index: 1;                  /* 一番前に出すよ */
+    }
+
+    /* E) 古い「●ドット」が残っていても消すよ */
+    .type_absent .radioCheckWrapper input[type="radio"]:checked + label::after{
+      background: none !important;
+      border-right: none !important;
+    }
+  `;
+  document.documentElement.appendChild(style);
+
+  // ④ すでにある要素の高さを直すよ
+  document.querySelectorAll(".type_absent .radioCheckWrapper").forEach((w) => {
+    w.style.setProperty("height", "auto", "important");    // 10pxをやめるよ
+    w.style.setProperty("min-height", "32px", "important"); // 少し余裕を持たせるよ
+  });
+})();
