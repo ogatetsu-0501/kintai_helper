@@ -247,7 +247,7 @@ function addShiftTemplateSaveButton(sel) {
     header.style.background = "#34495e"; // ★ 見出しをくらい色にするよ
     header.style.padding = "15px 0"; // ★ 上と下にすき間をつくるよ
     header.style.textAlign = "center"; // ★ 文字をまんなかにするよ
-    header.style.margin = "0 0 10px"; // ★ 下にちょっとすき間をあけるよ
+    header.style.margin = "0 -10px 10px"; // ★ 横に広げて箱と同じ幅にするよ
     header.style.position = "sticky"; // ★ スクロールしても題名が上にくっつくよ
     header.style.top = "0"; // ★ いちばん上に固定するよ
     header.style.zIndex = "1"; // ★ ほかの部分より前に出すよ
@@ -295,6 +295,7 @@ function addShiftTemplateSaveButton(sel) {
 
     overlay.appendChild(box);
     document.body.appendChild(overlay); // ★ 画面に出すよ
+    input.focus(); // ★ すぐに入力できるようにするよ
 
     cancelBtn.addEventListener("click", () => {
       overlay.remove(); // ★ 何もしないで閉じるよ
@@ -365,7 +366,7 @@ function addShiftTemplateSaveButton(sel) {
       header.style.background = "#34495e"; // ★ 見出しをくらい色にするよ
       header.style.padding = "15px 0"; // ★ 上と下にすき間をつくるよ
       header.style.textAlign = "center"; // ★ 文字をまんなかにするよ
-      header.style.margin = "0 0 10px"; // ★ 下にすき間をあけるよ
+      header.style.margin = "0 -10px 10px"; // ★ 横に広げて箱と同じ幅にするよ
       header.style.position = "sticky"; // ★ スクロールしても題名が上にくっつくよ
       header.style.top = "0"; // ★ いちばん上に固定するよ
       header.style.zIndex = "1"; // ★ ほかの部分より前に出すよ
@@ -435,7 +436,7 @@ function addShiftTemplateSaveButton(sel) {
             margin-top: -3px; /* ★ まんなかに見えるようにするよ */
             border-right: 2px solid #6bd5e5; /* ★ 右の線だよ */
             border-bottom: 2px solid #6bd5e5; /* ★ 下の線だよ */
-            transform: rotate(45deg); /* ★ 斜めにしてチェックにするよ */
+            transform: rotate(45deg) scaleX(-1); /* ★ チェックを左右ひっくり返すよ */
             box-sizing: border-box; /* ★ にじみを防ぐよ */
           }
         `;
