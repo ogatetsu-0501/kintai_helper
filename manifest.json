@@ -22,6 +22,9 @@
       "js": [
         "content.js"
       ],
+      "css": [
+        "fix_absent_radio.css"
+      ],
       "run_at": "document_idle"
     }
   ],

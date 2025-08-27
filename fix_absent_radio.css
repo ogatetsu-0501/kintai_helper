@@ -1,0 +1,25 @@
+/* ラジオボタンと文字が重ならないようにする箱の設定 */
+.type_absent .radioCheckWrapper {
+  /* 幅がせまい時にボタンと文字を折り返す */
+  flex-wrap: wrap;
+  /* ボタンと文字のあいだにすき間をあける */
+  gap: 4px 10px;
+}
+
+/* ラジオボタンの見た目を整える */
+.type_absent .radioCheckWrapper input[type="radio"] {
+  /* ボタンの大きさを変えないようにする */
+  flex: 0 0 auto;
+  /* 文字とのあいだに少しあきを作る */
+  margin-right: 4px !important;
+}
+
+/* ラベルの文字の見た目を整える */
+.type_absent .radioCheckWrapper label {
+  /* 文字がつぶれないようにする */
+  flex: 0 0 auto;
+  /* 次のボタンとのあいだにあきを作る */
+  margin-right: 10px !important;
+  /* 文字が途中で折り返されないようにする */
+  white-space: nowrap;
+}
