@@ -1321,3 +1321,45 @@ setInterval(() => {
   });
   mo.observe(document.body, { childList: true, subtree: true });
 })();
+// ===== ラジオUI 最小修正（元のチェックマークをそのまま使う）=====
+(function () {
+  // ★ 以前こちらが注入したスタイル（ドット表示など）があれば除去するよ
+  //    ※ サイト本来のチェックマーク表示を優先するためだよ
+  const OLD_STYLE_IDS = [
+    "kintai-radio-fix-css",
+    "kintai-radio-native-visible",
+    "kintai-radio-circle-style",
+    "kintai-radio-use-original-circle"
+  ];
+  OLD_STYLE_IDS.forEach((id) => {
+    const s = document.getElementById(id);
+    if (s) s.remove();
+  });
+
+  // ★ ここから“最小限”の上書きだけを入れるよ
+  //    ・.radioCheckWrapper の height:10px を打ち消して自動に
+  //    ・ラベルの行高を 30px（丸サイズ）にそろえる
+  //    ・擬似要素(:before/:after)や padding-left はさわらない（元デザイン優先）
+  const STYLE_ID = "kintai-radio-keep-default-v2";
+  if (!document.getElementById(STYLE_ID)) {
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = `
+      .type_absent .radioCheckWrapper{
+        height: auto !important;      /* ← inline の height:10px を無効化するよ */
+        min-height: 32px !important;  /* ← 丸(30px)がつぶれないよう少し余裕を持たせるよ */
+      }
+      .type_absent .radioCheckWrapper input[type="radio"] + label{
+        line-height: 30px !important; /* ← 丸(30px)と同じ高さにして重なりを防ぐよ */
+      }
+      /* ※ ここでは ::before/::after や padding-left(42px) は一切変更しないよ */
+    `;
+    document.documentElement.appendChild(style);
+  }
+
+  // ★ すでにある inline の height:10px も念のため消しておくよ
+  document.querySelectorAll(".type_absent .radioCheckWrapper").forEach((w) => {
+    w.style.setProperty("height", "auto", "important");   // ← 10px → 自動
+    w.style.setProperty("min-height", "32px", "important");
+  });
+})();
