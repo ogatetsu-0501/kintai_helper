@@ -1135,3 +1135,112 @@ setInterval(() => {
   observer.observe(document.body, { childList: true, subtree: true });
 })();
 
+// ===== ラジオボタン重なりの最終対策（CSS注入＋高さ補正） =====
+// ※ 既存コードは一切いじらず、「見た目だけ」を後勝ちで直すよ
+(function () {
+  // これは一度だけCSSを入れるためのIDだよ
+  const STYLE_ID = "kintai-radio-fix-css";
+
+  // ★ 後勝ちで効くように、!important を付けたCSSを作るよ
+  //    ・.radioCheckWrapper の高さを自動に戻す（height:10pxを無効化する）
+  //    ・flex＋wrapで狭い画面でも折り返す
+  //    ・擬似要素（label::before/after）を止める
+  //    ・padding-left:42px を 0 にする
+  //    ・.mr40 を 10px にそろえる
+  const CSS_TEXT = `
+    /* ここから .type_absent の中だけ直すよ（他の画面に影響しないようにするため） */
+    .type_absent .radioCheckWrapper {
+      display: flex !important;         /* 横にならべるよ */
+      align-items: center !important;   /* 上下をまんなかにそろえるよ */
+      flex-wrap: wrap !important;       /* せまいときは次の行に折り返すよ */
+      height: auto !important;          /* inlineの height:10px を打ち消すよ */
+      min-height: 24px !important;      /* つぶれない最低高さを用意するよ（18〜20pxの丸ボタン想定） */
+      gap: 4px 12px !important;         /* 要素同士のすき間だよ */
+    }
+    .type_absent .radioCheckWrapper input[type="radio"] + label {
+      padding-left: 0 !important;       /* 擬似ラジオ前提の余白(42px)を消すよ */
+      line-height: 20px !important;     /* 上下の食い込みを防ぐよ */
+      margin-right: 10px !important;    /* となりとぶつからないようにするよ */
+      white-space: normal !important;    /* 文字を折り返せるようにするよ */
+    }
+    /* 擬似ラジオ（丸や四角）を完全に止めるよ。実ラジオと二重表示になるのを防ぐためだよ */
+    .type_absent .radioCheckWrapper input[type="radio"] + label::before,
+    .type_absent .radioCheckWrapper input[type="radio"] + label::after {
+      content: none !important;
+      display: none !important;
+    }
+    /* 既存の .mr40 が 40px !important でも、ここで10pxにそろえるよ */
+    .type_absent .radioCheckWrapper label.mr40 {
+      margin-right: 10px !important;
+    }
+    /* とてもせまい画面では、すき間を少しだけ小さくするよ */
+    @media (max-width: 480px) {
+      .type_absent .radioCheckWrapper {
+        gap: 4px 10px !important;
+      }
+    }
+  `;
+
+  // ★ CSSを1回だけ注入する関数だよ
+  function injectCssOnce() {
+    if (!document.getElementById(STYLE_ID)) {
+      const style = document.createElement("style");
+      style.id = STYLE_ID;
+      style.textContent = CSS_TEXT;
+      // <head> がなくても確実に反映されるように <html> に入れるよ
+      document.documentElement.appendChild(style);
+    }
+  }
+
+  // ★ ラッパー(Box)の inline height:10px を強制的に打ち消すよ
+  //    setProperty(..., 'important') を使うと !important にできるよ
+  function fixWrapperBox(root = document) {
+    const wrappers = root.querySelectorAll(".type_absent .radioCheckWrapper");
+    wrappers.forEach((w) => {
+      w.style.setProperty("height", "auto", "important");
+      w.style.setProperty("min-height", "24px", "important");
+      w.style.setProperty("display", "flex", "important");
+      w.style.setProperty("align-items", "center", "important");
+      w.style.setProperty("flex-wrap", "wrap", "important");
+      w.style.setProperty("gap", "4px 12px", "important");
+    });
+  }
+
+  // ★ ボタンと文字のちょっとした見た目も整えるよ（安全な範囲だけ）
+  function fixItems(root = document) {
+    const radios = root.querySelectorAll('.type_absent .radioCheckWrapper input[type="radio"]');
+    radios.forEach((r) => {
+      r.style.setProperty("margin-right", "4px", "important"); // 文字とのすき間だよ
+      r.style.width = "18px";   // クリックしやすい大きさだよ
+      r.style.height = "18px";
+    });
+  }
+
+  // ★ いまある要素にすぐ適用するよ
+  function applyNow(root = document) {
+    injectCssOnce();
+    fixWrapperBox(root);
+    fixItems(root);
+  }
+
+  // ★ 最初の読み込み時に一回やるよ
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => applyNow());
+  } else {
+    applyNow();
+  }
+
+  // ★ あとから画面に追加されたときも、すぐ直せるように見張り番を置くよ
+  const mo = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      for (const node of m.addedNodes) {
+        if (node && node.nodeType === 1) {
+          applyNow(node);
+        }
+      }
+    }
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+})();
+
+
