@@ -1138,114 +1138,114 @@ setInterval(() => {
 // ===== ラジオは「擬似要素の丸」を表示、文字と重ならないように整えるよ =====
 // ★ 既存HTML/JSは一切変えず、見た目だけを後勝ちCSSで直すよ
 (function () {
-  // 1) 一度だけ入れるためのIDだよ
-  const STYLE_ID = "kintai-radio-circle-style";
+  // ① 1回だけ入れるための印だよ
+  const STYLE_ID = "kintai-radio-use-original-circle";
 
-  // 2) 後勝ちで効くCSSテキストだよ（!importantで確実に上書きするよ）
+  // ② 後勝ちで効くCSSだよ（!important で確実に上書きするよ）
+  //   ・.radioCheckWrapper の height:10px を打ち消して自動に戻す
+  //   ・狭い幅では折り返し（wrap）で物理的な重なりを防ぐ
+  //   ・label の左パディング/行高を「元デザイン（丸30px）」に合わせる
+  //   ・以前の「content:none !important」を上書きして、擬似要素を“出す”
+  //   ・ネイティブ input は視覚的に隠して二重表示を防ぐ（クリックは label でOK）
   const CSS = `
-    /* ─────────────────────────────────────────
-     *  .type_absent 内だけ直すよ（他の画面に影響しないように）
-     * ───────────────────────────────────────── */
-
-    /* ラッパー：高さを自動に戻し、狭幅では折り返して重なりを防ぐよ */
+    /* ─ ラッパー：高さ不足を解消し、狭幅では折り返す ─ */
     .type_absent .radioCheckWrapper {
-      display: flex !important;          /* 横にならべるよ */
-      align-items: center !important;    /* 上下をまんなかにそろえるよ */
-      flex-wrap: wrap !important;        /* せまいときは次の行に折り返すよ */
-      height: auto !important;           /* inlineの height:10px を打ち消すよ */
-      min-height: 24px !important;       /* 丸(20px)がつぶれない最低高さだよ */
-      gap: 6px 14px !important;          /* 行内6px / 項目間14pxのすき間だよ */
+      display: flex !important;          /* 横に並べるよ */
+      align-items: center !important;    /* 上下まんなかにそろえるよ */
+      flex-wrap: wrap !important;        /* せまい時は次の行におりかえすよ */
+      height: auto !important;           /* inline の height:10px を打ち消すよ */
+      min-height: 32px !important;       /* 丸(30px)がつぶれない高さだよ */
+      gap: 6px 16px !important;          /* 要素どうしのすき間だよ */
     }
 
-    /* 本物の input は見えないだけにして、機能は残すよ（ラベルで操作する） */
+    /* ─ ネイティブ input は見えないだけにして機能は残す（ダブル表示を防ぐ）─ */
     .type_absent .radioCheckWrapper input[type="radio"] {
       position: absolute !important;     /* レイアウトから外すよ */
       opacity: 0 !important;             /* 透明にするよ */
-      width: 1px !important;             /* ほぼ場所を取らないよ */
+      width: 1px !important;
       height: 1px !important;
       margin: 0 !important;
       pointer-events: none !important;   /* クリックはラベルに任せるよ */
-      appearance: none !important;       /* 独自丸と二重にならないようにするよ */
+      appearance: none !important;
       -webkit-appearance: none !important;
       -moz-appearance: none !important;
-      clip: rect(0 0 0 0) !important;    /* 万一の可視化を防ぐよ */
+      clip: rect(0 0 0 0) !important;
       clip-path: inset(50%) !important;
     }
 
-    /* 文字のラベル：左に「丸の幅＋余白」をとって重なりを防ぐよ */
+    /* ─ ラベル：元デザインの丸(30px)に合わせて左余白と行高をそろえる ─ */
     .type_absent .radioCheckWrapper input[type="radio"] + label {
       position: relative !important;
       display: inline-block !important;
-      padding-left: 28px !important;     /* 20pxの丸 + 8pxのすき間だよ */
-      line-height: 20px !important;      /* 丸と同じ高さにするよ */
-      margin-right: 12px !important;     /* 次の項目とのあいだだよ */
-      white-space: normal !important;    /* せまいときは折り返せるようにするよ */
-    }
-    /* 既存 .mr40(40px !important) を上書きして幅の無駄をなくすよ */
-    .type_absent .radioCheckWrapper label.mr40 {
-      margin-right: 12px !important;
+      padding-left: 42px !important;     /* ← 既存CSSどおり（丸30px + 余白） */
+      line-height: 30px !important;      /* ← 丸と同じ高さにするよ */
+      vertical-align: middle !important;
+      /* 既存の .mr40 はそのまま使う（ここでは上書きしない） */
+      white-space: normal !important;    /* せまい時は折り返せるようにするよ */
     }
 
-    /* ─ 丸の外枠（未選択の見た目） ─ */
+    /* ── ここがポイント：擬似要素を“出す”指定（元デザインを維持）── */
+    /* 外枠の丸：サイト既存の見た目に合わせて 30px / 白背景 / 灰枠 */
     .type_absent .radioCheckWrapper input[type="radio"] + label::before {
-      content: "" !important;            /* ← 擬似要素を有効化するよ */
+      content: "" !important;            /* 以前の content:none を打ち消すよ */
       position: absolute;
       left: 0;
       top: 50%;
-      width: 20px;
-      height: 20px;
-      margin-top: -10px;                 /* 上下まんなかに置くよ */
+      width: 30px;
+      height: 30px;
+      margin-top: -15px;                 /* 上下まんなかに置くよ */
       background: #fff;
-      border: 1px solid #dee2e5;         /* サイトのトーンに合わせてね */
+      border: 1px solid #dee2e5;         /* 既存CSSと同じ枠色だよ */
       border-radius: 50%;
       box-sizing: border-box;
     }
 
-    /* ─ 丸の内側（選択時のしるし） ─ */
+    /* 内側のしるし：checked時のドットは“元のCSS”に任せる
+       もし以前に :after を消してしまっている場合に備え、最低限の復旧だけ用意 */
     .type_absent .radioCheckWrapper input[type="radio"]:checked + label::after {
-      content: "" !important;
+      content: "" !important;            /* 以前の none を上書きして出せるようにするよ */
       position: absolute;
-      left: 5px;
+      left: 9px;                         /* 30px外枠の中央に来る位置だよ */
       top: 50%;
-      width: 10px;
-      height: 10px;
-      margin-top: -5px;
-      background: #2196f3;               /* 好みの色に変えてOKだよ */
+      width: 12px;
+      height: 12px;
+      margin-top: -6px;
+      background: currentColor;          /* サイトの文字色に追随するよ（元色があればそちらが勝つ） */
       border-radius: 50%;
     }
 
-    /* キーボード操作でフォーカスしたときのアクセシビリティだよ */
+    /* キーボード操作のフォーカス枠（元にあるならそちらが勝つよ） */
     .type_absent .radioCheckWrapper input[type="radio"]:focus + label::before {
       outline: 2px solid #2196f3;
       outline-offset: 2px;
     }
   `;
 
-  // 3) CSSを1回だけ注入するよ
+  // ③ CSS を 1 回だけ入れるよ
   function injectCssOnce() {
     const exists = document.getElementById(STYLE_ID);
     if (exists) return;
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = CSS;
-    // <head>がなくても確実に効くように <html> 直下に入れるよ
+    // <head> がなくても確実に効くように <html> 直下に入れるよ
     document.documentElement.appendChild(style);
   }
 
-  // 4) いまある要素に対して「高さ10pxの打ち消し」も確実にやるよ
+  // ④ いまある要素にも高さの直しをするよ
   function fixInlineHeight(root = document) {
     const wrappers = root.querySelectorAll(".type_absent .radioCheckWrapper");
     wrappers.forEach((w) => {
       w.style.setProperty("height", "auto", "important");
-      w.style.setProperty("min-height", "24px", "important");
+      w.style.setProperty("min-height", "32px", "important");
       w.style.setProperty("display", "flex", "important");
       w.style.setProperty("align-items", "center", "important");
       w.style.setProperty("flex-wrap", "wrap", "important");
-      w.style.setProperty("gap", "6px 14px", "important");
+      w.style.setProperty("gap", "6px 16px", "important");
     });
   }
 
-  // 5) 今すぐ適用するよ
+  // ⑤ 今すぐ適用するよ
   function applyNow(root = document) {
     injectCssOnce();
     fixInlineHeight(root);
@@ -1256,7 +1256,7 @@ setInterval(() => {
     applyNow();
   }
 
-  // 6) あとから追加された要素にも自動で適用する見張り番だよ
+  // ⑥ あとから追加された要素にも自動で適用する見張り番だよ
   const mo = new MutationObserver((muts) => {
     for (const m of muts) {
       for (const n of m.addedNodes) {
