@@ -436,7 +436,7 @@ function addShiftTemplateSaveButton(sel) {
             margin-top: -3px; /* ★ まんなかに見えるようにするよ */
             border-right: 2px solid #6bd5e5; /* ★ 右の線だよ */
             border-bottom: 2px solid #6bd5e5; /* ★ 下の線だよ */
-            transform: rotate(45deg) scaleX(-1); /* ★ チェックを左右ひっくり返すよ */
+            transform: rotate(-135deg) scaleX(-1); /* ★ さらに左に90度回してチェックの向きをなおすよ */
             box-sizing: border-box; /* ★ にじみを防ぐよ */
           }
         `;
