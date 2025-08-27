@@ -86,6 +86,28 @@ fetch(chrome.runtime.getURL("default_config.json"))
     // 読み込みに失敗しても黙っておくよ
   });
 
+// ★ ラジオボタンと文字がぶつからないようにする関数だよ
+function fixRadioLabelOverlap() {
+  // ★ ラジオボタンの箱を全部見つけるよ
+  const wrappers = document.querySelectorAll("div.radioCheckWrapper");
+  // ★ 見つけた箱をひとつずつ直すよ
+  wrappers.forEach((wrap) => {
+    // ★ 高さを自動にして横ならびにするよ
+    wrap.style.height = "auto";
+    wrap.style.display = "flex";
+    wrap.style.alignItems = "center";
+  });
+}
+
+// ★ ページが表示されたらすぐ直すよ
+fixRadioLabelOverlap();
+
+// ★ ページの中身が変わっても直すよ
+new MutationObserver(fixRadioLabelOverlap).observe(document.body, {
+  childList: true,
+  subtree: true,
+});
+
 // ★ 今の入力を全部集めるよ
 function collectShiftTemplateData() {
   const absentHTML = document.querySelector("div.type_absent")?.outerHTML || "";
