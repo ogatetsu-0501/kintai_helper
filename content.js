@@ -424,20 +424,21 @@ function addShiftTemplateSaveButton(sel) {
             box-sizing: border-box; /* ★ はみ出さないようにするよ */
           }
           .template-delete-item input[type="checkbox"]:checked + span::before {
-            border: 1px solid #6bd5e5; /* ★ えらんだら青いふちだよ */
+            border: 1px solid #65d3e4; /* ★ えらんだら青いふちだよ */
           }
           .template-delete-item input[type="checkbox"]:checked + span::after {
             content: ""; /* ★ チェックの形を描くよ */
             position: absolute; /* ★ 位置を決めるよ */
             top: 50%; /* ★ たてのまんなかだよ */
-            left: 4px; /* ★ 丸の内側に置くよ */
-            width: 8px; /* ★ チェックの横幅だよ */
-            height: 4px; /* ★ チェックの高さだよ */
-            margin-top: -2px; /* ★ まんなかに見えるようにするよ */
-            border-right: 2px solid #6bd5e5; /* ★ 右の線だよ */
-            border-bottom: 2px solid #6bd5e5; /* ★ 下の線だよ */
-            transform: rotate(-45deg) scaleX(-1); /* ★ さらに右に90度回してチェックの向きをなおすよ */
+            left: 8px; /* ★ 丸の内側に置くよ */
+            width: 14px; /* ★ チェックの横幅だよ */
+            height: 8px; /* ★ チェックの高さだよ */
+            margin-top: -6px; /* ★ まんなかに見えるようにするよ */
+            border-left: 2px solid #65d3e4; /* ★ 左の線だよ */
+            border-bottom: 2px solid #65d3e4; /* ★ 下の線だよ */
+            transform: rotate(-45deg); /* ★ 傾けてチェックの形にするよ */
             box-sizing: border-box; /* ★ にじみを防ぐよ */
+            display: block; /* ★ 形をしっかり見せるよ */
           }
         `;
         box.appendChild(style); // ★ スタイルを箱に入れるよ
