@@ -376,23 +376,96 @@ function addShiftTemplateSaveButton(sel) {
       header.appendChild(ttl);
       box.appendChild(header);
 
+      const styleId = "template-delete-style"; // ★ スタイルの名前だよ
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement("style"); // ★ 見た目をきめるよ
+        style.id = styleId; // ★ 同じものを二度作らないための札だよ
+        style.textContent = `
+          .template-delete-list {
+            display: grid; /* ★ 横に二列ならべるよ */
+            grid-template-columns: 1fr 1fr; /* ★ ひとしく二つに分けるよ */
+            gap: 8px 16px; /* ★ すき間をあけるよ */
+            justify-content: center; /* ★ まんなかに置くよ */
+            justify-items: start; /* ★ 左そろえにするよ */
+            align-items: center; /* ★ たてのまんなかにするよ */
+            margin-bottom: 10px; /* ★ 下にちょっとすき間を作るよ */
+          }
+          .template-delete-item {
+            position: relative; /* ★ 中の配置の基準だよ */
+            display: inline-flex; /* ★ 横に文字と丸をならべるよ */
+            align-items: center; /* ★ 上下まんなかにそろえるよ */
+          }
+          .template-delete-item input[type="checkbox"] {
+            position: absolute; /* ★ 本当のチェックを隠すよ */
+            opacity: 0; /* ★ 見えなくするけど働くよ */
+            width: 30px; /* ★ 丸の横幅だよ */
+            height: 30px; /* ★ 丸の高さだよ */
+            left: 0; /* ★ 左にくっつけるよ */
+            top: 50%; /* ★ たてのまんなかに置くよ */
+            margin-top: -15px; /* ★ まんなかに見えるようにするよ */
+          }
+          .template-delete-item span {
+            position: relative; /* ★ 疑似要素の置き場だよ */
+            padding-left: 42px; /* ★ 丸(30px)とすき間だよ */
+            line-height: 30px; /* ★ 文字の高さを丸に合わせるよ */
+          }
+          .template-delete-item span::before {
+            content: ""; /* ★ からの箱で丸を作るよ */
+            position: absolute; /* ★ 文字の左に置くよ */
+            left: 0; /* ★ いちばん左だよ */
+            top: 50%; /* ★ たてのまんなかだよ */
+            width: 30px; /* ★ 丸の横幅だよ */
+            height: 30px; /* ★ 丸の高さだよ */
+            margin-top: -15px; /* ★ まんなかに見えるようにするよ */
+            background: #fff; /* ★ うしろは白だよ */
+            border: 1px solid #dee2e5; /* ★ うすい灰色のふちだよ */
+            border-radius: 50%; /* ★ まん丸にするよ */
+            box-sizing: border-box; /* ★ はみ出さないようにするよ */
+          }
+          .template-delete-item input[type="checkbox"]:checked + span::before {
+            border: 1px solid #6bd5e5; /* ★ えらんだら青いふちだよ */
+          }
+          .template-delete-item input[type="checkbox"]:checked + span::after {
+            content: ""; /* ★ チェックの形を描くよ */
+            position: absolute; /* ★ 位置を決めるよ */
+            top: 50%; /* ★ たてのまんなかだよ */
+            left: 8px; /* ★ 丸の内側に置くよ */
+            width: 12px; /* ★ チェックの横幅だよ */
+            height: 6px; /* ★ チェックの高さだよ */
+            margin-top: -3px; /* ★ まんなかに見えるようにするよ */
+            border-right: 2px solid #6bd5e5; /* ★ 右の線だよ */
+            border-bottom: 2px solid #6bd5e5; /* ★ 下の線だよ */
+            transform: rotate(45deg); /* ★ 斜めにしてチェックにするよ */
+            box-sizing: border-box; /* ★ にじみを防ぐよ */
+          }
+        `;
+        box.appendChild(style); // ★ スタイルを箱に入れるよ
+      }
+
+      const listWrap = document.createElement("div"); // ★ チェックの一覧を入れる箱だよ
+      listWrap.className = "template-delete-list"; // ★ 二列にするためのクラスだよ
+
       names.forEach((n) => {
-        const label = document.createElement("label"); // ★ 名前の横にチェックを置くよ
-        const chk = document.createElement("input");
-        chk.type = "checkbox";
-        chk.value = n;
-        label.appendChild(chk);
-        label.appendChild(document.createTextNode(n));
-        box.appendChild(label);
-        box.appendChild(document.createElement("br"));
+        const label = document.createElement("label"); // ★ 名前と丸を一つのセットにするよ
+        label.className = "template-delete-item"; // ★ 見た目を決めるクラスだよ
+        const chk = document.createElement("input"); // ★ 本当のチェックだよ
+        chk.type = "checkbox"; // ★ 何個でも選べるようにするよ
+        chk.value = n; // ★ 名前を値として持たせるよ
+        const span = document.createElement("span"); // ★ 名前を書く場所だよ
+        span.textContent = n; // ★ 文字を入れるよ
+        label.appendChild(chk); // ★ 丸をセットに入れるよ
+        label.appendChild(span); // ★ 名前もセットに入れるよ
+        listWrap.appendChild(label); // ★ 作ったセットを一覧に足すよ
       });
+      box.appendChild(listWrap); // ★ 一覧を箱に入れるよ
 
       // ★ ボタンを横にならべる箱だよ
       const btnWrap = document.createElement("div");
       btnWrap.style.marginTop = "10px";
       btnWrap.style.display = "flex";
-      btnWrap.style.justifyContent = "center";
+      btnWrap.style.justifyContent = "space-between"; // ★ 左右のはしに置くよ
       btnWrap.style.gap = "10px";
+      btnWrap.style.width = "100%"; // ★ 箱いっぱいの横幅にするよ
 
       const okBtn = document.createElement("button"); // ★ 消すボタンだよ
       okBtn.textContent = "削除";
