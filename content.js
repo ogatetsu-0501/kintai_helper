@@ -1086,3 +1086,47 @@ setInterval(() => {
     textarea.parentElement.appendChild(wrapper);
   }
 }, 500);
+
+// ===== ラジオボタンの重なりを直すよ =====
+(function () {
+  // ラジオボタンとそのラベルの間にすきまをあける関数だよ
+  function fixRadioSpacing(root = document) {
+    // まず root の中にある全部のラジオボタンを探すよ
+    const radios = root.querySelectorAll('input[type="radio"]');
+    radios.forEach((radio) => {
+      // ラジオボタンのすぐ後ろにあるラベルを見つけるよ
+      const label = radio.nextElementSibling;
+      if (label && label.tagName === 'LABEL') {
+        // ラジオボタンとラベルが重ならないように余白をつけるよ
+        radio.style.marginRight = '4px';
+        label.style.marginLeft = '0px';
+        label.style.marginRight = '10px';
+        label.style.display = 'inline-block';
+      }
+    });
+  }
+
+  // ページが読み込まれたときに一度だけすきまを直すよ
+  fixRadioSpacing();
+
+  // 新しいラジオボタンが追加されたら気づいて直す見張り番だよ
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((m) => {
+      m.addedNodes.forEach((node) => {
+        if (node.nodeType === 1) {
+          // 追加されたものがラジオボタンなら、その場所を直すよ
+          if (node.matches && node.matches('input[type="radio"]')) {
+            fixRadioSpacing(node.parentNode);
+          } else {
+            // そうでなければ中にラジオボタンがないか調べて直すよ
+            fixRadioSpacing(node);
+          }
+        }
+      });
+    });
+  });
+
+  // ページ全体を見張って、新しいラジオボタンを見つけたら教えてもらうよ
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
+
