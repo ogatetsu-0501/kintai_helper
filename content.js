@@ -1266,3 +1266,58 @@ setInterval(() => {
   });
   mo.observe(document.body, { childList: true, subtree: true });
 })();
+// ===== 元デザイン維持・最小修正パッチ =====
+(function () {
+  // ❶ 今から入れるCSSだよ
+  const STYLE_ID = "kintai-radio-keep-default"; // ★ 1回だけ入れる印だよ
+  const CSS_TEXT = `
+    /* ここだけ直すよ */
+    .type_absent .radioCheckWrapper {
+      height: auto !important;         /* ★ 高さ10pxを消すよ */
+      min-height: 32px !important;     /* ★ 丸がつぶれないようにするよ */
+    }
+    .type_absent .radioCheckWrapper input[type="radio"] + label {
+      line-height: 30px !important;    /* ★ 丸と同じ高さにするよ */
+    }
+  `;
+
+  // ❷ CSSを1回だけ入れるよ
+  function injectCssOnce() {
+    if (!document.getElementById(STYLE_ID)) {
+      const style = document.createElement("style");
+      style.id = STYLE_ID;
+      style.textContent = CSS_TEXT;
+      document.documentElement.appendChild(style);
+    }
+  }
+
+  // ❸ inlineの高さも直すよ
+  function fixInlineHeight(root = document) {
+    const wrappers = root.querySelectorAll(".type_absent .radioCheckWrapper");
+    wrappers.forEach((w) => {
+      w.style.setProperty("height", "auto", "important");
+      w.style.setProperty("min-height", "32px", "important");
+    });
+  }
+
+  // ❹ すぐに直すよ
+  function applyNow(root = document) {
+    injectCssOnce();
+    fixInlineHeight(root);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => applyNow());
+  } else {
+    applyNow();
+  }
+
+  // ❺ あとから増えたときも直すよ
+  const mo = new MutationObserver((muts) => {
+    for (const m of muts) {
+      for (const n of m.addedNodes) {
+        if (n && n.nodeType === 1) applyNow(n);
+      }
+    }
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+})();
