@@ -399,25 +399,25 @@ function addShiftTemplateSaveButton(sel) {
           .template-delete-item input[type="checkbox"] {
             position: absolute; /* ★ 本当のチェックを隠すよ */
             opacity: 0; /* ★ 見えなくするけど働くよ */
-            width: 30px; /* ★ 丸の横幅だよ */
-            height: 30px; /* ★ 丸の高さだよ */
+            width: 18px; /* ★ 丸の横幅だよ */
+            height: 18px; /* ★ 丸の高さだよ */
             left: 0; /* ★ 左にくっつけるよ */
             top: 50%; /* ★ たてのまんなかに置くよ */
-            margin-top: -15px; /* ★ まんなかに見えるようにするよ */
+            margin-top: -9px; /* ★ まんなかに見えるようにするよ */
           }
           .template-delete-item span {
             position: relative; /* ★ 疑似要素の置き場だよ */
-            padding-left: 42px; /* ★ 丸(30px)とすき間だよ */
-            line-height: 30px; /* ★ 文字の高さを丸に合わせるよ */
+            padding-left: 30px; /* ★ 丸(18px)とすき間だよ */
+            line-height: 18px; /* ★ 文字の高さを丸に合わせるよ */
           }
           .template-delete-item span::before {
             content: ""; /* ★ からの箱で丸を作るよ */
             position: absolute; /* ★ 文字の左に置くよ */
             left: 0; /* ★ いちばん左だよ */
             top: 50%; /* ★ たてのまんなかだよ */
-            width: 30px; /* ★ 丸の横幅だよ */
-            height: 30px; /* ★ 丸の高さだよ */
-            margin-top: -15px; /* ★ まんなかに見えるようにするよ */
+            width: 18px; /* ★ 丸の横幅だよ */
+            height: 18px; /* ★ 丸の高さだよ */
+            margin-top: -9px; /* ★ まんなかに見えるようにするよ */
             background: #fff; /* ★ うしろは白だよ */
             border: 1px solid #dee2e5; /* ★ うすい灰色のふちだよ */
             border-radius: 50%; /* ★ まん丸にするよ */
@@ -430,10 +430,10 @@ function addShiftTemplateSaveButton(sel) {
             content: ""; /* ★ チェックの形を描くよ */
             position: absolute; /* ★ 位置を決めるよ */
             top: 50%; /* ★ たてのまんなかだよ */
-            left: 8px; /* ★ 丸の内側に置くよ */
-            width: 12px; /* ★ チェックの横幅だよ */
-            height: 6px; /* ★ チェックの高さだよ */
-            margin-top: -3px; /* ★ まんなかに見えるようにするよ */
+            left: 4px; /* ★ 丸の内側に置くよ */
+            width: 8px; /* ★ チェックの横幅だよ */
+            height: 4px; /* ★ チェックの高さだよ */
+            margin-top: -2px; /* ★ まんなかに見えるようにするよ */
             border-right: 2px solid #6bd5e5; /* ★ 右の線だよ */
             border-bottom: 2px solid #6bd5e5; /* ★ 下の線だよ */
             transform: rotate(-45deg) scaleX(-1); /* ★ さらに右に90度回してチェックの向きをなおすよ */
