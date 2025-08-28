@@ -1,60 +1,84 @@
 # 勤務実績補助拡張
 
-この拡張はjinjer勤怠の入力をお手伝いするChrome拡張です。ボタンを押すだけで残業時間や理由を素早く入力できます。設定の保存と復元もできるので、環境を簡単に引き継げます。
+このREADMEは、`content.js` が勤怠編集画面で提供する機能と、日々の操作手順をまとめたものです。拡張は既存サイトのHTMLやCSSを変えず、DOM操作と後勝ちCSSでUIを補強します。
 
-## 主な機能
-- ボタンをクリックするだけで勤務情報を入力
-- ボタンの並び替え・追加・削除が可能
-- 申請取消時に入力内容を自動保存し、次回起動時に復元
-- 設定のエクスポートとインポート
-- Github上の更新をチェックして通知
+## 概要
+- **更新チェック**: GitHubの最新コミットとローカルの `last_update.txt` を比較し、更新があれば画面右上に通知します。
+- **ボタン編集＋理由選択UI**: 「設定」「確定」「キャンセル」「設定ダウンロード」ボタンを備えた編集UIを理由テキストエリア直下に追加し、勤務区分(単一)と理由(複数)を選択できます。並べ替え・名称編集・項目追加/削除・タイトル編集にも対応し、chrome.storage.local へ保存します。
+- **テンプレート保存／適用／削除**: 日付横に「テンプレート保存」「テンプレート削除」を追加し、欠勤種別や入退勤/休憩ブロックのHTMLと値を保存して再適用できます。選択肢は既存のシフトテンプレートに `__ext_○○` として追加されます。
+- **一時保存＆自動復元**: 「取消」ボタン押下時に入力状態を一時保存し、同じ日付を再度開いた際に自動復元します。
+- **テーブル位置合わせ＆予定行ハイライト**: 勤務表の先頭へスクロールし、「勤務予定」行を淡い黄色で強調します。
+- **ラジオボタン重なり修正**: `.type_absent .radioCheckWrapper` 内のラジオとラベルの余白・高さを調整し、狭い幅でも見やすくします。
 
-## ファイル構成
-- `manifest.json` : 拡張機能の設定
-- `content.js` : 画面で動くメインスクリプト
-- `background.js` : 更新後にタブを再読み込みするサービスワーカー
-- `default_config.json` : 初期ボタン設定
-- `update/` : 更新用スクリプトが入ったフォルダ
+## 想定ページ・依存要素
+- 理由テキストエリア: `#update_reason`
+- シフトテンプレート: `#shift_template_collection_for_timecard_cf`
+- 日付表示: `div.floatLeft.jdate span`
+- 「提出」ボタン: `button.jsubmit-edit-timecard`
+- 「取消」ボタン: `button.jsubmit-cancle-create-timecard`
+- 勤務表スクロールラッパ: `div.table-scroll-box`
+- 欠勤種別ラジオ群: `.type_absent .radioCheckWrapper`
+- 入退勤・休憩の時間ブロック: `div.timecards_hidden_data.staff_time_cards_month` 内の `input[type="number"]` など
 
-## インストール方法
-1. [GitHubダウンロードリンク](https://github.com/ogatetsu-0501/kintai_helper)このリポジトリを好きな場所に展開します。
-2. Chromeの拡張機能ページを開き、右上の**デベロッパーモード**をONにします。
-3. 「**パッケージ化されていない拡張機能を読み込む**」を選び、展開したフォルダを指定します。
-4. jinjer勤怠のページを開くと、画面上部にボタンが表示されます。
+## 基本の使い方
+1. **自動挿入**: 画面を開くと理由テキストエリア直下に拡張UIが自動で挿入されます。
+2. **勤務区分と理由の選択**: 青い勤務区分ボタンは単一選択、黄色い理由ボタンは複数選択です。テキストエリアにはタイトル＋選択中の勤務区分＋選択中の理由が自動入力されます。
+3. **設定の編集**: 右上の「設定」で編集モードに入り、ドラッグで並べ替え、×で削除、クリックで改名、「＋追加」で項目追加ができます。完了は「確定」、取り消しは「キャンセル」です。設定内容は `default_config.json` としてダウンロード可能です。
+4. **テンプレート保存／適用／削除**: 日付横のボタンでテンプレートの保存や削除を行い、シフトテンプレートの選択肢から適用します。
+5. **一時保存と自動復元**: 「取消」ボタンを押すと入力状態を日付＋ユーザー単位で一時保存し、次回同日を開いたときに自動復元します。
 
-## 更新手順
-1. 画面右上に更新案内が表示されたら`update`フォルダのスクリプトを実行します。
-   - Windows: `update/win/update.exe`
-   - Mac: `update/mac/update.command`(権限付与難易度が高いため、GitHubからのダウンロードを推奨)
-   - WindowsでPowerShellが見つからないときは、次の場所を順番に探します。
-     1. `C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`
-     2. `C:\\Users\\<ユーザー名>\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Windows PowerShell\\powershell.exe`
-     見つからなくても`tar`コマンドでZIPを解凍して処理を続けます。
-2. スクリプト実行後、Chromeの拡張機能ページで**更新**ボタンを押してください。
+## 自動補助
+- **テーブル位置合わせ**: `div.table-scroll-box` を先頭へスクロールし、「勤務予定」の一つ前の行を画面上端に合わせます。
+- **更新通知**: `last_update.txt` と GitHub API (`/commits/main`) の日時を比較し、更新があれば実行手順を案内します。
+- **ラジオボタン補修**: MutationObserverで動的追加にも対応し、狭幅時の折り返しやチェックの可視性を確保します。
 
-### 書き込みできないときは
-`update.command` を実行して「read-only」と表示された場合、フォルダに書き込めない状態になっています。次の手順で権限を確認し、必要に応じて変更してください。
+## ストレージ仕様
+- ユーザー名: `a.dropdown-toggle.username p` のテキストを利用（取得できない場合は `unknown_user`）。
+- 一時保存: `tempSave_<ユーザー>_<日付>` に勤務/休憩値やHTMLを保存し、復元後に削除します。
+- テンプレート: `customShiftTemplates_<ユーザー>` にHTMLと各入力値を保存し、`savedShiftTemplate_<ユーザー>` で最後に選んだテンプレートを保持します。
+- ボタン構成: `workTypes_<ユーザー>` `reasons_<ユーザー>` `title_<ユーザー>` を使用し、初期値は `default_config.json` から読み込みます。
 
-1. **フォルダに移動する**
-   ```bash
-   cd パス/to/kintai_helper
-   ```
-   *ターミナルにフォルダをドラッグアンドドロップすると、上の`cd`の後に自動でパスが入力されます。*
-2. **今の権限を確認する**
-   ```bash
-   ls -ld .
-   ```
-   表示結果に `w` がなければ書き込み不可です。
-3. **書き込み権限を付ける**
-   ```bash
-   chmod -R u+w .
-   ```
-   失敗するときは `sudo` を付けて再実行します。
-4. **スクリプトの実行権を付ける**
-   ```bash
-   chmod +x update/mac/update.command
-   ```
-この後にもう一度 `update.command` を試してみてください。
+## インストール要件
+- `manifest.json` で `storage` 権限を付与し、対象勤怠ドメインを `content_scripts.matches` に指定します。
+- 拡張内リソース: `content.js`、`default_config.json`、`last_update.txt`
+- ネットワーク: GitHub API `https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main`
+
+## 操作チートシート
+- **勤務区分ボタン**: 単一選択。再度押すと解除。
+- **理由ボタン**: 複数選択トグル。
+- **設定**: 並べ替え・改名・削除・追加を行う編集モード。
+- **設定ダウンロード**: 現在の構成を `default_config.json` として保存。
+- **テンプレート保存/削除**: 日付横のボタンから実行。
+- **取消**: 一時保存され、次回同日を開いたときに自動復元。
+
+## トラブルシュート
+- **拡張UIが出ない**: 対象ページのURLが `manifest.json` の `matches` に含まれているか確認し、`#update_reason` が有効かチェックしてください。
+- **テンプレートが出ない**: `#shift_template_collection_for_timecard_cf` の存在と、`customShiftTemplates_<ユーザー>` に保存があるかを確認してください。
+- **自動復元されない**: 編集可能で「提出」ボタンがある場合のみ復元します。一度復元すると一時データは消えます。
+- **更新通知が出ない**: `last_update.txt` の内容やGitHub APIの応答を確認してください。
+
+## よくある質問
+- **既存サイトのデザインは壊れない？**
+  既存HTML/JSには触れず、後勝ちCSSとDOM追加で実装しているため影響は最小限です。
+- **既定ボタンを他PCへ配りたい**
+  「設定ダウンロード」で取得した `default_config.json` を他環境に配布してください。
+- **テンプレートの保存単位は？**
+  ユーザー別に `chrome.storage.local` へ保存します。HTMLと値をセットで保持します。
+- **データをリセットしたい**
+  `chrome.storage.local` から `workTypes_*`、`reasons_*`、`title_*`、`customShiftTemplates_*`、`savedShiftTemplate_*`、`tempSave_*` を削除してください。
+
+## 変更に強い実装上のポイント（開発者向け）
+- **ポーリング＋MutationObserver**: 500msごとの検知とDOM変化監視でUI挿入を保証します。
+- **HTMLごと保存**: 未確定DOMも含め `outerHTML` を保存・再構築し、画面状態を忠実に復元します。
+- **キー設計**: ユーザー名＋日付で一時保存を分離し、恒久設定とも衝突しない命名です。
+- **復元の安全弁**: 「提出」ボタンが無い画面では復元しません。復元後は一時データを削除します。
+
+## 付録：ネットワークとファイル
+- **GitHub API**: `https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main`
+- **ローカルファイル**:
+  - `default_config.json`: 初期構成
+  - `last_update.txt`: 更新比較用の日時
 
 ## ライセンス
 MIT License
+
