@@ -1,26 +1,5 @@
 // == content.js ==
 
-// == 更新チェック ==
-const commitApiUrl =
-  "https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main";
-const localUpdateUrl = chrome.runtime.getURL("last_update.txt");
-
-// ★ 更新方法を知らせる通知
-function showUpdateNotice(folder, script) {
-  const box = document.createElement("div");
-  box.id = "kintai-update-notice";
-  box.style.position = "fixed";
-  box.style.top = "10px";
-  box.style.right = "10px";
-  box.style.zIndex = "10000";
-  box.style.background = "#fff";
-  box.style.border = "1px solid #000";
-  box.style.padding = "10px";
-  box.style.fontSize = "14px";
-  box.textContent = `拡張機能が更新されています。kintai_helper\\update\\${folder}\\${script} をダブルクリックで実行して下さい`;
-  document.body.appendChild(box);
-}
-
 // ★ ボタン共通スタイル
 function applyDefaultButtonStyle(btn) {
   btn.style.backgroundColor = "#ffffff";
@@ -42,30 +21,6 @@ function getCurrentUserName() {
   const nameP = document.querySelector("a.dropdown-toggle.username p");
   return nameP ? nameP.textContent.trim() : "unknown_user";
 }
-
-// === 更新チェック実行 ===
-Promise.all([
-  fetch(localUpdateUrl)
-    .then((r) => r.text())
-    .catch(() => ""),
-  fetch(commitApiUrl)
-    .then((r) => r.json())
-    .catch(() => null),
-])
-  .then(([localText, remote]) => {
-    if (!remote) return;
-    const localTime = Date.parse(localText.trim());
-    const remoteTime = Date.parse(remote.commit.committer.date);
-    if (isNaN(localTime) || remoteTime > localTime) {
-      const isWin = navigator.userAgent.includes("Windows");
-      const folder = isWin ? "win" : "mac";
-      const script = isWin ? "update.exe" : "update.command";
-      showUpdateNotice(folder, script);
-    }
-  })
-  .catch(() => {
-    // エラーが出てもここでは何もしないよ
-  });
 
 // ===== 初期フラグ =====
 let previousVisible = false;

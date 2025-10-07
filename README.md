@@ -3,7 +3,6 @@
 このREADMEは、`content.js` が勤怠編集画面で提供する機能と、日々の操作手順をまとめたものです。拡張は既存サイトのHTMLやCSSを変えず、DOM操作と後勝ちCSSでUIを補強します。
 
 ## 概要
-- **更新チェック**: GitHubの最新コミットとローカルの `last_update.txt` を比較し、更新があれば画面右上に通知します。
 - **ボタン編集＋理由選択UI**: 「設定」「確定」「キャンセル」「設定ダウンロード」ボタンを備えた編集UIを理由テキストエリア直下に追加し、勤務区分(単一)と理由(複数)を選択できます。並べ替え・名称編集・項目追加/削除・タイトル編集にも対応し、chrome.storage.local へ保存します。
 - **テンプレート保存／適用／削除**: 日付横に「テンプレート保存」「テンプレート削除」を追加し、欠勤種別や入退勤/休憩ブロックのHTMLと値を保存して再適用できます。選択肢は既存のシフトテンプレートに `__ext_○○` として追加されます。
 - **一時保存＆自動復元**: 「取消」ボタン押下時に入力状態を一時保存し、同じ日付を再度開いた際に自動復元します。
@@ -29,7 +28,6 @@
 
 ## 自動補助
 - **テーブル位置合わせ**: `div.table-scroll-box` を先頭へスクロールし、「勤務予定」の一つ前の行を画面上端に合わせます。
-- **更新通知**: `last_update.txt` と GitHub API (`/commits/main`) の日時を比較し、更新があれば実行手順を案内します。
 - **ラジオボタン補修**: MutationObserverで動的追加にも対応し、狭幅時の折り返しやチェックの可視性を確保します。
 
 ## ストレージ仕様
@@ -40,8 +38,7 @@
 
 ## インストール要件
 - `manifest.json` で `storage` 権限を付与し、対象勤怠ドメインを `content_scripts.matches` に指定します。
-- 拡張内リソース: `content.js`、`default_config.json`、`last_update.txt`
-- ネットワーク: GitHub API `https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main`
+- 拡張内リソース: `content.js`、`default_config.json`
 
 ## 操作チートシート
 - **勤務区分ボタン**: 単一選択。再度押すと解除。
@@ -55,7 +52,6 @@
 - **拡張UIが出ない**: 対象ページのURLが `manifest.json` の `matches` に含まれているか確認し、`#update_reason` が有効かチェックしてください。
 - **テンプレートが出ない**: `#shift_template_collection_for_timecard_cf` の存在と、`customShiftTemplates_<ユーザー>` に保存があるかを確認してください。
 - **自動復元されない**: 編集可能で「提出」ボタンがある場合のみ復元します。一度復元すると一時データは消えます。
-- **更新通知が出ない**: `last_update.txt` の内容やGitHub APIの応答を確認してください。
 
 ## よくある質問
 - **既存サイトのデザインは壊れない？**
@@ -74,10 +70,8 @@
 - **復元の安全弁**: 「提出」ボタンが無い画面では復元しません。復元後は一時データを削除します。
 
 ## 付録：ネットワークとファイル
-- **GitHub API**: `https://api.github.com/repos/ogatetsu-0501/kintai_helper/commits/main`
 - **ローカルファイル**:
   - `default_config.json`: 初期構成
-  - `last_update.txt`: 更新比較用の日時
 
 ## ライセンス
 MIT License

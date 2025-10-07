@@ -7,9 +7,7 @@
     "storage"
   ],
   "host_permissions": [
-    "https://kintai.jinjer.biz/*",
-    "https://raw.githubusercontent.com/*",
-    "https://api.github.com/*"
+    "https://kintai.jinjer.biz/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -28,8 +26,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "default_config.json",
-        "last_update.txt"
+        "default_config.json"
       ],
       "matches": [
         "https://kintai.jinjer.biz/*"
