@@ -3,6 +3,18 @@
   "name": "勤務実績補助拡張",
   "version": "2.0",
   "description": "残業・理由ボタンを自動表示・編集可能にする拡張",
+  "icons": {
+    "16": "faviconV2.png",
+    "48": "faviconV2.png",
+    "128": "faviconV2.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "faviconV2.png",
+      "24": "faviconV2.png",
+      "32": "faviconV2.png"
+    }
+  },
   "permissions": ["storage"],
   "host_permissions": ["https://kintai.jinjer.biz/*"],
   "content_scripts": [
