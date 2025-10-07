@@ -1,36 +1,21 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "勤務実績補助拡張",
-  "version": "1.1",
+  "version": "2.0",
   "description": "残業・理由ボタンを自動表示・編集可能にする拡張",
-  "permissions": [
-    "storage"
-  ],
-  "host_permissions": [
-    "https://kintai.jinjer.biz/*"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  },
+  "permissions": ["storage"],
+  "host_permissions": ["https://kintai.jinjer.biz/*"],
   "content_scripts": [
     {
-      "matches": [
-        "https://kintai.jinjer.biz/staffs/time_cards"
-      ],
-      "js": [
-        "content.js"
-      ],
+      "matches": ["https://kintai.jinjer.biz/staffs/time_cards"],
+      "js": ["content.js"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": [
-        "default_config.json"
-      ],
-      "matches": [
-        "https://kintai.jinjer.biz/*"
-      ]
+      "resources": ["default_config.json"],
+      "matches": ["https://kintai.jinjer.biz/*"]
     }
   ],
   "key": "TUlJRXZnSUJBREFOQmdrcWhraUc5dzBCQVFFRkFBU0NCS2d3Z2dTa0FnRUFBb0lCQVFETnI0b3dPcy93eUJqNgo4dm9iNmdJZUZXNDBaR1FEanVhT0tOeGZ4di9GRGlaY3ZUUjBwdnJkNHBaaGUzd3B5UDlRVCs0WldFdWVTQjdCCkxibndKRm9wZGZCWXNYZEgxS1U1bmhJSm0wK2xRdGRCRS9WZG84N0pYV1QyNmxET2RqRDdTaTk4bUJxazRTRjgKc25rYjliVVJNeUt1Y0YzdzljNk1nUnlHaERsb1V3OVlPTlZzZE11YXRHTVlEaURoQVdrNDQyRUE0cjk4RVEwUwpFbi90SFpRN0d4SEVlZXAveHkxWUpwLzBWMC9yRVEwTThGdDlkb3B2bXJZL01OZlUvdHYxbTlIeG9rYW56YWtTCitESXJyeVdpVzhsdDVOVFFkcllPempVTk9RYXFkOUIzMTRkbWpwVVlaWm1HNzMxc0t2R0lTQ2N0cWxaNkdNWWQKYnlWTE9oSnZBZ01CQUFFQ2dnRUFPVGxDTCtMYzRUYzZRKzcvaUc2VlFqdGlHcTluWjlvRTZMNFRlWTRLc0k4YwpPeWJraGlQQ25hS2hoZU51Q3M0QndoMUt0OEJwNFZKZFJBOXRzSkxjaHJacU5MTEM1YmdTYzdJM2dIYTJOTnNnCnVkbE1wVTJpaFVFM2lyNXIxdFRwRWJCMC82dnRsYnVRcm5tVTJpT0V5WkU1YitDUk1pMmcxbFJCVkdkSzlXdk8Ka0dkdGsvbGNnNWV5dW01Y2VrQmMzVGRTRm1iUHA4YnY5RWtMeERlaUFkY1BnQWM2cFJSTDhBUEpzL0QybXhhdApFdFRhSmhKcHZIR3ZneTVndjc1RHlCMDA3NFBxOU1DZDh4anlYZTdCQmRXU3k4azhwRU5zUFhBbEdXdVhnSmN1CmpEMU92THh1dERydk1xTlk3YWZ2SzdFRmZkeENhVFFubjh0N28yY2x3UUtCZ1FEdDJhbHdVWnUrWHQrNERqbU4KdFFWQ2ZWdHJBYXhqdHdXSUFveFhvRzdlTERab1pQTlZGYmVKS0FyVmtRS2J5NVN2ZFpBRzlodkI2WURFU2VOQgpwWVU4N1pPL0tIdXlEME9WYm1sUWxOaitybXVQaHBIbFJBcHZYemlJTkpmUjQzd3dRaTlGZUdEaWhlOHhGenBrCmIzK0xZN05oZFZUM0tVOWV1NG5xQ0lZbklRS0JnUURkWVkxNHZlb3dNZlVSckNhcnUrcUhaS0hLaUJEM3gzck8KOEVHRFJ6TjVpWDVpMFluR2dtK3A5OTNEZ3hFcFJxZWZQTW5HUWZWdGcvWVdIVU9JMzVXbkZkVmZYY3lkMHpoegpHQTU1ZXhPcUF6RW5qOHVReEs2bkJRQmpxTWk3THlkVTlmVW9WWC8vSTdyNXd1TzdhOVIwcmhkREQ2QnFORmpKCm45T1RsejVYandLQmdRQ0IvL0dvUGpLTnZuVXd1RFdreWtmeHEycUg5Z1l2Q2gydjFSUzM0Q3c0cXBtaVBXcnkKR2tpU1lweHBWalRDeW1hZDcvZWtsbWRkZVM2MEdsNW54dnduN1FKUC9PUiswZkR5ZjhKNEZLTDFzSWVCanQrMwpHNVZJZ2hiMyt5YnZ4UkpmbmcwUVAxZFUrRGRmOFg0czN2UXJUM2IvMFkxNitjMHp6ZlQzUVdseGdRS0JnUUNvCnA1RW4wMGQrd0JCOERqTEgwcm14dkRDbUkxTUo4YWJWMEtPWVo3NEhjWUFmdUpMRjhNa3hLK3grN25NOGh0OWMKcU9ydlo0Q2FsbFg4TXY4b1gyMmJoVDZ4RUx5NTRCaTVWakp3eWhzSkFyV0g5anlYWmIvSTdqNkZyaWgrc2tXOApyRVRCSGFJTnRpTFQ5RzJhYzJQQUlJRUlUZmRmOGRGU2liaWVVRExtY1FLQmdDQ3dzMkdyK3lrTUs3UGFXQlRFCm5Scm9BRUlUZ3ZCUXpRMkc1cGRNSlVpS1ZrOTNDTEEyUms1V3IzSlRiWHpxSGRLYzY5eGpQdHpUNy9LTFJ4T0MKeDYxNzUvWWZJN1pvazlDL01abFpaeDRwdlVXYlBPRDFMK2s1Nm45WlVBMDRBbzBBa0JxVHhRYlRpN3c4T2pZWQpVVHRIRDdJb0pWRk9hQ3k4bWVvNGhiWVAKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo="
