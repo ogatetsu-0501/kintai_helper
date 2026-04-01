@@ -59,20 +59,20 @@ function collectShiftTemplateData() {
   const checkoutValue =
     document.querySelector('input[name="checkout"]:checked')?.value || "";
   const workInputs = Array.from(
-    document.querySelectorAll('div.timecards_hidden_data input[type="number"]')
+    document.querySelectorAll('div.timecards_hidden_data input[type="number"]'),
   ).map((el) => {
     const cls = Array.from(el.classList).find(
-      (c) => c.includes("hour") || c.includes("minute")
+      (c) => c.includes("hour") || c.includes("minute"),
     );
     const val = el.value.trim(); // ★ 入力された数字だよ
     const padded = val ? val.padStart(2, "0") : "00"; // ★ 2けたにそろえるよ
     return { selector: `input.${cls}`, value: padded };
   });
   const breakInputs = Array.from(
-    document.querySelectorAll('div.break-times-data input[type="number"]')
+    document.querySelectorAll('div.break-times-data input[type="number"]'),
   ).map((el) => {
     const cls = Array.from(el.classList).find(
-      (c) => c.includes("hour") || c.includes("minute")
+      (c) => c.includes("hour") || c.includes("minute"),
     );
     const val = el.value.trim(); // ★ 入力された数字だよ
     const padded = val ? val.padStart(2, "0") : "00"; // ★ 2けたにそろえるよ
@@ -113,33 +113,33 @@ function applyShiftTemplate(name) {
     replaceOrCreate(
       "span.type_in_out_break",
       data.inoutHTML,
-      "div.title.staff_time_cards_month"
+      "div.title.staff_time_cards_month",
     );
     replaceOrCreate(
       "div.timecards_hidden_data.staff_time_cards_month",
       data.workHTML,
-      ".time_card_container"
+      ".time_card_container",
     );
     replaceOrCreate(
       "div.break-times.time_card_container",
       data.breakHTML,
-      ".time_card_container"
+      ".time_card_container",
     );
     if (data.absentValue) {
       const r = document.querySelector(
-        `input[name="absent"][value="${data.absentValue}"]`
+        `input[name="absent"][value="${data.absentValue}"]`,
       );
       if (r) r.checked = true;
     }
     if (data.checkinValue) {
       const r = document.querySelector(
-        `input[name="checkin"][value="${data.checkinValue}"]`
+        `input[name="checkin"][value="${data.checkinValue}"]`,
       );
       if (r) r.checked = true;
     }
     if (data.checkoutValue) {
       const r = document.querySelector(
-        `input[name="checkout"][value="${data.checkoutValue}"]`
+        `input[name="checkout"][value="${data.checkoutValue}"]`,
       );
       if (r) r.checked = true;
     }
@@ -266,7 +266,7 @@ function addShiftTemplateSaveButton(sel) {
           { [`customShiftTemplates_${user}`]: templates },
           () => {
             const existOpt = Array.from(sel.options).find(
-              (o) => o.value === `__ext_${name}`
+              (o) => o.value === `__ext_${name}`,
             ); // ★ もうある選択肢をさがすよ
             if (!existOpt) {
               const opt = document.createElement("option"); // ★ 新しい選択肢を作るよ
@@ -279,7 +279,7 @@ function addShiftTemplateSaveButton(sel) {
             sel.value = `__ext_${name}`; // ★ 今の選択を新しいものにするよ
             sel.dispatchEvent(new Event("change", { bubbles: true })); // ★ 変わったことを知らせるよ
             overlay.remove(); // ★ 保存したら画面を閉じるよ
-          }
+          },
         );
       });
     });
@@ -450,7 +450,7 @@ function addShiftTemplateSaveButton(sel) {
 
       okBtn.addEventListener("click", () => {
         const checked = Array.from(
-          box.querySelectorAll("input[type='checkbox']:checked")
+          box.querySelectorAll("input[type='checkbox']:checked"),
         ).map((c) => c.value); // ★ えらんだ名前を集めるよ
         if (checked.length === 0) {
           overlay.remove(); // ★ 何もえらばなければ終わり
@@ -466,7 +466,7 @@ function addShiftTemplateSaveButton(sel) {
               const saved = d[`savedShiftTemplate_${user}`];
               checked.forEach((name) => {
                 const opt = Array.from(sel.options).find(
-                  (o) => o.value === `__ext_${name}`
+                  (o) => o.value === `__ext_${name}`,
                 ); // ★ プルダウンの項目をさがすよ
                 if (opt) opt.remove(); // ★ 見つけたら消すよ
                 if (saved === `__ext_${name}`) {
@@ -478,7 +478,7 @@ function addShiftTemplateSaveButton(sel) {
                 }
               });
             });
-          }
+          },
         );
         overlay.remove(); // ★ 終わったら画面を消すよ
       });
@@ -499,39 +499,894 @@ function addShiftTemplateSaveButton(sel) {
     sel.parentElement.appendChild(delBtn); // ★ 削除ボタンも置くよ
   }
 }
+// ====== 月次勤怠レスポンス取得 ======
+
+// ★ 監視したい API の URL だよ
+const SCHEDULE_MONTH_API_URL =
+  "https://kintai.jinjer.biz/v1/dashboard/time_cards/time_cards_schedule_month";
+
+// ★ ページ側のスクリプトとやり取りするためのイベント名だよ
+const SCHEDULE_MONTH_EVENT_NAME = "kintai-helper:schedule-month";
+
+// ★ 最新のレスポンス本体を覚えておく場所だよ
+let latestScheduleMonthPayload = null;
+
+// ★ 日ごとの配列をそのまま持っておく場所だよ
+let latestScheduleMonthDays = [];
+
+// ★ 日付をキーにしてすぐ取り出せるようにする場所だよ
+let latestScheduleMonthDayMap = new Map();
+
+// ★ この URL が対象の API かどうかを調べるよ
+function isScheduleMonthApiUrl(url) {
+  if (typeof url !== "string" || url.trim() === "") {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(url, location.href);
+    return (
+      parsed.pathname === "/v1/dashboard/time_cards/time_cards_schedule_month"
+    );
+  } catch (error) {
+    return false;
+  }
+}
+
+// ★ この JSON が月次勤怠レスポンスかどうかを調べるよ
+function isScheduleMonthPayload(payload) {
+  if (!payload || typeof payload !== "object") {
+    return false;
+  }
+
+  if (!Array.isArray(payload.data) || payload.data.length === 0) {
+    return false;
+  }
+
+  return payload.data.some((item) => Array.isArray(item?.days));
+}
+
+// ★ レスポンスの中から 1 日ずつ取り出すよ
+function extractScheduleMonthDays(payload) {
+  if (!isScheduleMonthPayload(payload)) {
+    return [];
+  }
+
+  return payload.data.flatMap((item) => {
+    if (!Array.isArray(item.days)) {
+      return [];
+    }
+
+    return item.days.flat().filter((day) => {
+      return day && typeof day.day === "string";
+    });
+  });
+}
+
+// ★ 取り出した日ごとのデータを Map に入れ直すよ
+function rebuildScheduleMonthDayMap(days) {
+  const dayMap = new Map();
+
+  days.forEach((day) => {
+    dayMap.set(day.day, day);
+  });
+
+  return dayMap;
+}
+
+// ★ 新しいレスポンスを保存するよ
+function saveScheduleMonthPayload(payload) {
+  latestScheduleMonthPayload = payload;
+  latestScheduleMonthDays = extractScheduleMonthDays(payload);
+  latestScheduleMonthDayMap = rebuildScheduleMonthDayMap(
+    latestScheduleMonthDays,
+  );
+
+  // ★ レスポンスを受け取れたら、表示の上書きとオーバーレイ表示を試すよ
+  setTimeout(() => {
+    applyScheduleMonthStatusOverrides();
+    showMissingDatesOverlayIfNeeded();
+  }, 0);
+}
+
+// ★ content script からは page の fetch / XHR を直接さわりにくいので、
+// ★ 拡張機能内の外部ファイルを読み込んで監視するよ
+function injectScheduleMonthHookScript() {
+  if (document.getElementById("kintai-helper-schedule-hook")) {
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.id = "kintai-helper-schedule-hook";
+  script.src = chrome.runtime.getURL("page_hook.js");
+
+  // ★ page_hook.js 側へ必要な設定を渡すよ
+  script.dataset.eventName = SCHEDULE_MONTH_EVENT_NAME;
+  script.dataset.apiPath =
+    "/v1/dashboard/time_cards/time_cards_schedule_month";
+
+  // ★ 読み込みが終わったらタグ自体は消しておくよ
+  script.addEventListener("load", () => {
+    script.remove();
+  });
+
+  document.documentElement.appendChild(script);
+}
+
+// ★ ページ側から届いたレスポンスを受け取って保存するよ
+function setupScheduleMonthReceiver() {
+  document.addEventListener(SCHEDULE_MONTH_EVENT_NAME, (event) => {
+    try {
+      const detailText = event?.detail;
+      if (typeof detailText !== "string" || detailText.trim() === "") {
+        return;
+      }
+
+      const detail = JSON.parse(detailText);
+      if (!isScheduleMonthApiUrl(detail.url)) {
+        return;
+      }
+
+      if (!isScheduleMonthPayload(detail.payload)) {
+        return;
+      }
+
+      saveScheduleMonthPayload(detail.payload);
+    } catch (error) {
+      // ★ 読み取りに失敗したときは何もしないよ
+    }
+  });
+}
+
+// ★ 監視の準備をまとめて行うよ
+function initScheduleMonthCapture() {
+  setupScheduleMonthReceiver();
+  injectScheduleMonthHookScript();
+}
+// ★ 月次勤怠レスポンスの監視を始めるよ
+initScheduleMonthCapture();
+
+// ====== 月次勤怠レスポンスを使った表示上書き ======
+
+// ★ 今日の日付を YYYY-MM-DD の形で返すよ
+function getTodayDateText() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+// ★ その日のデータに休日があるかを見るよ
+function hasHolidayInScheduleDay(day) {
+  return Array.isArray(day?.holidays) && day.holidays.length > 0;
+}
+
+// ★ その日のデータに予定シフトがあるかを見るよ
+function hasShiftInScheduleDay(day) {
+  return Array.isArray(day?.shifts) && day.shifts.length > 0;
+}
+
+// ★ その日のデータに実績があるかを見るよ
+function hasTimeCardsInScheduleDay(day) {
+  return Array.isArray(day?.time_cards) && day.time_cards.length > 0;
+}
+
+// ★ 00:00 ではない時間かどうかを見るよ
+function hasMeaningfulTimeText(value) {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const text = value.trim();
+  return text !== "" && text !== "-" && text !== "00:00";
+}
+
+// ★ 承認済みかどうかを、実績列の時間から見るよ
+function hasApprovedWorkingTime(day, row) {
+  const working = day?.working || {};
+  const candidateTexts = [
+    working.work_hours,
+    working.total_working_actual,
+    working.working_hours_original_daycol,
+    working.working_hours_legal_daycol,
+  ];
+
+  if (candidateTexts.some((value) => hasMeaningfulTimeText(value))) {
+    return true;
+  }
+
+  if (!row) {
+    return false;
+  }
+
+  const workingCells = row.querySelectorAll("td.working.edit_staff");
+  return Array.from(workingCells).some((cell) => {
+    return hasMeaningfulTimeText(cell.textContent || "");
+  });
+}
+
+// ★ 1 行に表示したい文字を決めるよ
+// ★ 変えるのは「承認待ち」と「未打刻」だけだよ
+function getDesiredStatusTextFromScheduleDay(day, dateText, row) {
+  if (!day || !dateText) {
+    return "";
+  }
+
+  if (hasHolidayInScheduleDay(day)) {
+    return "";
+  }
+
+  const hasShift = hasShiftInScheduleDay(day);
+  const hasTimeCards = hasTimeCardsInScheduleDay(day);
+
+  if (!hasShift) {
+    return "";
+  }
+
+  if (hasTimeCards) {
+    if (hasApprovedWorkingTime(day, row)) {
+      return "";
+    }
+
+    return "承認待ち";
+  }
+
+  if (dateText <= getTodayDateText()) {
+    return "未打刻";
+  }
+
+  return "";
+}
+
+// ★ 表示中のステータスセルを取るよ
+function getVisibleStatusCell(row) {
+  return row.querySelector("td.status.fixed.edit_staff");
+}
+
+// ★ ステータス表示の箱を取るよ
+function getStatusInfoBlock(row) {
+  return row.querySelector("td.status.fixed.edit_staff div.cf[data-text]");
+}
+
+// ★ ステータス文字を出している span を取るよ
+function getStatusTextSpan(row) {
+  return row.querySelector("td.status.fixed.edit_staff div.cf[data-text] span");
+}
+// ★ 元のステータス表示を覚えておくよ
+function rememberOriginalStatusSnapshot(row) {
+  const statusCell = getVisibleStatusCell(row);
+  const infoBlock = getStatusInfoBlock(row);
+  const textSpan = getStatusTextSpan(row);
+
+  if (!statusCell || !infoBlock || !textSpan) {
+    return;
+  }
+
+  if (!statusCell.dataset.kintaiHelperOriginalClassName) {
+    statusCell.dataset.kintaiHelperOriginalClassName = statusCell.className;
+  }
+
+  if (!infoBlock.dataset.kintaiHelperOriginalText) {
+    infoBlock.dataset.kintaiHelperOriginalText = infoBlock.dataset.text || "";
+  }
+
+  if (!textSpan.dataset.kintaiHelperOriginalText) {
+    textSpan.dataset.kintaiHelperOriginalText = textSpan.textContent || "";
+  }
+
+  if (!textSpan.dataset.kintaiHelperOriginalClassName) {
+    textSpan.dataset.kintaiHelperOriginalClassName = textSpan.className;
+  }
+}
+
+
+// ★ 元のクラス名に戻すよ
+function restoreOriginalStatusClassName(statusCell) {
+  if (!statusCell) {
+    return;
+  }
+
+  const originalClassName =
+    statusCell.dataset.kintaiHelperOriginalClassName || statusCell.className;
+
+  statusCell.className = originalClassName;
+}
+
+// ★ 元のステータス表示に戻すよ
+function restoreOriginalStatusSnapshot(row) {
+  const statusCell = getVisibleStatusCell(row);
+  const infoBlock = getStatusInfoBlock(row);
+  const textSpan = getStatusTextSpan(row);
+
+  if (!statusCell || !infoBlock || !textSpan) {
+    return;
+  }
+
+  restoreOriginalStatusClassName(statusCell);
+  resetStatusInlineStyle(statusCell, infoBlock, textSpan);
+
+  infoBlock.dataset.text = infoBlock.dataset.kintaiHelperOriginalText || "";
+  textSpan.textContent = textSpan.dataset.kintaiHelperOriginalText || "";
+  textSpan.className = textSpan.dataset.kintaiHelperOriginalClassName || "";
+}
+
+// ★ 「所休」と同じ青を調べるよ
+function getHolidayBlueColor() {
+  const holidayLabel =
+    document.querySelector("td.holiday_td.green_dark .hl") ||
+    document.querySelector('td.holiday_td .hl[data-text="所休"]');
+
+  if (holidayLabel) {
+    return getComputedStyle(holidayLabel).color;
+  }
+
+  return "#65d3e4";
+}
+
+// ★ 今の赤文字の色を調べるよ
+function getMissingRedColor() {
+  const redLabel =
+    document.querySelector("td.status.red_dark span.border_red") ||
+    document.querySelector("td.status.red_dark span") ||
+    document.querySelector("span.border_red");
+
+  if (redLabel) {
+    return getComputedStyle(redLabel).color;
+  }
+
+  return "#ff7978";
+}
+
+// ★ 行の黄色を付けたり外したりするよ
+function setMissingRowHighlight(row, shouldHighlight) {
+  const cells = row.querySelectorAll("td");
+
+  cells.forEach((cell) => {
+    if (shouldHighlight) {
+      cell.style.backgroundColor = "lightyellow";
+      cell.dataset.kintaiHelperMissingBg = "1";
+      return;
+    }
+
+    if (cell.dataset.kintaiHelperMissingBg === "1") {
+      cell.style.backgroundColor = "";
+      delete cell.dataset.kintaiHelperMissingBg;
+    }
+  });
+}
+
+// ★ ステータスの見た目をいったん初期化するよ
+function resetStatusInlineStyle(statusCell, infoBlock, textSpan) {
+  if (statusCell) {
+    statusCell.style.color = "";
+  }
+
+  if (infoBlock) {
+    infoBlock.style.color = "";
+  }
+
+  if (textSpan) {
+    textSpan.style.color = "";
+    textSpan.style.border = "";
+    textSpan.style.backgroundColor = "";
+  }
+}
+
+// ★ 実績表示の箱を取るよ
+function getTimeCardCell(row) {
+  return row.querySelector("td.timecard.fixed");
+}
+
+// ★ 元の実績表示を出している箱を取るよ
+function getOriginalTimeCardBox(row) {
+  return row.querySelector("td.timecard.fixed .time.tc.cf");
+}
+
+// ★ 承認待ち用の実績プレビューを取るよ
+function getPendingPreviewBox(row) {
+  return row.querySelector(".kintai-helper-pending-preview");
+}
+
+// ★ UNIX秒を HH:MM に変えるよ
+function formatTimeFromUnixSeconds(seconds) {
+  const value = Number(seconds || 0);
+  if (!Number.isFinite(value) || value <= 0) {
+    return "";
+  }
+
+  const date = new Date(value * 1000);
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  return `${hour}:${minute}`;
+}
+
+// ★ 承認待ちのときに出す実績文字列を作るよ
+function buildPendingPreviewText(day) {
+  const timeCards = Array.isArray(day?.time_cards) ? day.time_cards : [];
+  const firstTimeCard = timeCards.find((timeCard) => {
+    const attend = formatTimeFromUnixSeconds(timeCard?.time_attend);
+    const out = formatTimeFromUnixSeconds(timeCard?.time_out);
+    return attend && out;
+  });
+
+  if (!firstTimeCard) {
+    return "";
+  }
+
+  const attend = formatTimeFromUnixSeconds(firstTimeCard.time_attend);
+  const out = formatTimeFromUnixSeconds(firstTimeCard.time_out);
+
+  if (!attend || !out) {
+    return "";
+  }
+
+  return `${attend}〜${out}`;
+}
+
+// ★ 実績列の元の見た目を覚えておくよ
+function rememberOriginalTimeCardBox(row) {
+  const originalBox = getOriginalTimeCardBox(row);
+
+  if (!originalBox) {
+    return;
+  }
+
+  if (!originalBox.dataset.kintaiHelperOriginalInnerHtml) {
+    originalBox.dataset.kintaiHelperOriginalInnerHtml = originalBox.innerHTML;
+  }
+
+  if (!originalBox.dataset.kintaiHelperOriginalClassName) {
+    originalBox.dataset.kintaiHelperOriginalClassName = originalBox.className;
+  }
+
+  if (!originalBox.dataset.kintaiHelperOriginalDisplay) {
+    originalBox.dataset.kintaiHelperOriginalDisplay =
+      originalBox.style.display || "";
+  }
+}
+
+// ★ 実績列を元の見た目に戻すよ
+function restoreOriginalTimeCardBox(row) {
+  const originalBox = getOriginalTimeCardBox(row);
+  const previewBox = getPendingPreviewBox(row);
+
+  if (previewBox) {
+    previewBox.remove();
+  }
+
+  if (!originalBox) {
+    return;
+  }
+
+  if (originalBox.dataset.kintaiHelperOriginalClassName) {
+    originalBox.className = originalBox.dataset.kintaiHelperOriginalClassName;
+  }
+
+  if (originalBox.dataset.kintaiHelperOriginalInnerHtml) {
+    originalBox.innerHTML = originalBox.dataset.kintaiHelperOriginalInnerHtml;
+  }
+
+  originalBox.style.display =
+    originalBox.dataset.kintaiHelperOriginalDisplay || "";
+}
+
+// ★ 承認待ちのときは、出勤〜退勤だけを実績列に見せるよ
+function applyPendingTimeCardPreview(row, day, statusText) {
+  const timeCardCell = getTimeCardCell(row);
+  const originalBox = getOriginalTimeCardBox(row);
+
+  if (!timeCardCell || !originalBox) {
+    return;
+  }
+
+  rememberOriginalTimeCardBox(row);
+
+  if (statusText !== "承認待ち") {
+    restoreOriginalTimeCardBox(row);
+    return;
+  }
+
+  const previewText = buildPendingPreviewText(day);
+  if (!previewText) {
+    restoreOriginalTimeCardBox(row);
+    return;
+  }
+
+  originalBox.style.display = "none";
+
+  let previewBox = getPendingPreviewBox(row);
+  if (!previewBox) {
+    previewBox = document.createElement("div");
+    previewBox.className = "time tc cf plp kintai-helper-pending-preview";
+    timeCardCell.appendChild(previewBox);
+  }
+
+  previewBox.innerHTML = "";
+
+  const [attend, out] = previewText.split("〜");
+
+  const attendItem = document.createElement("div");
+  attendItem.className = "item it1";
+  attendItem.textContent = attend || "";
+
+  const separator = document.createElement("i");
+  separator.className = "icon-right-line1";
+  separator.textContent = "〜";
+
+  const outItem = document.createElement("div");
+  outItem.className = "item it2";
+  outItem.textContent = out || "";
+
+  previewBox.appendChild(attendItem);
+  previewBox.appendChild(separator);
+  previewBox.appendChild(outItem);
+}
+
+// ★ ステータス文字と色を反映するよ
+function applyStatusTextToRow(row, statusText) {
+  const statusCell = getVisibleStatusCell(row);
+  const infoBlock = getStatusInfoBlock(row);
+  const textSpan = getStatusTextSpan(row);
+
+  if (!statusCell || !infoBlock || !textSpan) {
+    return;
+  }
+
+  rememberOriginalStatusSnapshot(row);
+  restoreOriginalStatusSnapshot(row);
+
+  infoBlock.dataset.text = statusText;
+  textSpan.textContent = statusText;
+
+  // ★ いったん赤い枠のクラスは外しておくよ
+  textSpan.classList.remove("border_red");
+
+  if (statusText === "承認待ち") {
+    const blueColor = getHolidayBlueColor();
+
+    statusCell.classList.remove("red_dark");
+    statusCell.style.color = blueColor;
+    infoBlock.style.color = blueColor;
+    textSpan.style.color = blueColor;
+    textSpan.style.border = "none";
+    return;
+  }
+
+  if (statusText === "未打刻") {
+    const redColor = getMissingRedColor();
+
+    statusCell.style.color = redColor;
+    infoBlock.style.color = redColor;
+    textSpan.style.color = redColor;
+    textSpan.style.border = "none";
+  }
+}
+
+// ★ 行の上書きを元に戻すよ
+function restoreRowOverrides(row) {
+  restoreOriginalStatusSnapshot(row);
+  restoreOriginalTimeCardBox(row);
+  setMissingRowHighlight(row, false);
+}
+
+// ★ 月次レスポンスを使って一覧の文字を上書きするよ
+function applyScheduleMonthStatusOverrides() {
+  if (latestScheduleMonthDayMap.size === 0) {
+    return;
+  }
+
+  const box = document.querySelector("div.table-scroll-box");
+  if (!box) {
+    return;
+  }
+
+  const rows = box.querySelectorAll("tbody tr[data-date]");
+
+  rows.forEach((row) => {
+    const dateText = row.dataset.date || "";
+    const day = latestScheduleMonthDayMap.get(dateText);
+
+    if (!day) {
+      restoreRowOverrides(row);
+      return;
+    }
+
+    const statusText = getDesiredStatusTextFromScheduleDay(day, dateText, row);
+
+    if (!statusText) {
+      restoreRowOverrides(row);
+      return;
+    }
+
+    applyStatusTextToRow(row, statusText);
+    setMissingRowHighlight(row, statusText === "未打刻");
+    applyPendingTimeCardPreview(row, day, statusText);
+  });
+}
+
+// ★ 日付の文字を Date に変えるよ
+function parseDateTextToLocalDate(dateText) {
+  const [yearText, monthText, dayText] = dateText.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+
+  const date = new Date(year, month - 1, day);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+// ★ Date を YYYY-MM-DD に戻すよ
+function formatLocalDateToText(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+// ★ 日付を指定した日数だけずらすよ
+function shiftDateText(dateText, diffDays) {
+  if (!dateText) {
+    return "";
+  }
+
+  const date = parseDateTextToLocalDate(dateText);
+  date.setDate(date.getDate() + diffDays);
+  return formatLocalDateToText(date);
+}
+
+// ★ スクロール調査用のログを出すよ
+function logScrollDebug(message, extra = {}) {
+  console.log(`[kintai_helper][scroll] ${message}`, extra);
+}
+
+// ★ その日のデータが未打刻かどうかを判定するよ
+function isMissingScheduleDay(day, todayText) {
+  if (!day || typeof day.day !== "string") {
+    return false;
+  }
+
+  if (hasHolidayInScheduleDay(day)) {
+    return false;
+  }
+
+  if (!hasShiftInScheduleDay(day)) {
+    return false;
+  }
+
+  if (hasTimeCardsInScheduleDay(day)) {
+    return false;
+  }
+
+  if (day.day > todayText) {
+    return false;
+  }
+
+  return true;
+}
+
+// ★ 未打刻の日付一覧を取るよ
+function getMissingDateTexts() {
+  if (!Array.isArray(latestScheduleMonthDays) || latestScheduleMonthDays.length === 0) {
+    return [];
+  }
+
+  const todayText = getTodayDateText();
+  return latestScheduleMonthDays
+    .filter((day) => isMissingScheduleDay(day, todayText))
+    .map((day) => day.day);
+}
+
+// ★ いちばん古い未打刻の日付を取るよ
+function getOldestMissingDateText() {
+  const missingDateTexts = getMissingDateTexts();
+  if (missingDateTexts.length === 0) {
+    return "";
+  }
+
+  return missingDateTexts[0];
+}
+
+// ★ 日付をオーバーレイ用の形に整えるよ
+function formatDateTextForMissingOverlay(dateText) {
+  if (!dateText) {
+    return "";
+  }
+
+  const day = latestScheduleMonthDayMap.get(dateText);
+  if (day && typeof day.day_format === "string" && day.day_format.trim() !== "") {
+    const match = day.day_format.match(/(\d{2})月(\d{2})日\((.)\)/);
+    if (match) {
+      const month = String(Number(match[1]));
+      const date = String(Number(match[2]));
+      const weekday = match[3];
+      return `${month}/${date}(${weekday})`;
+    }
+  }
+
+  const match = dateText.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) {
+    return dateText;
+  }
+
+  const month = String(Number(match[2]));
+  const date = String(Number(match[3]));
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  const localDate = parseDateTextToLocalDate(dateText);
+  const weekday = weekdays[localDate.getDay()] || "";
+  return `${month}/${date}(${weekday})`;
+}
+
+// ★ 未打刻が複数あるときに知らせるオーバーレイを出すよ
+function showMissingDatesOverlayIfNeeded() {
+  const missingDateTexts = getMissingDateTexts();
+  if (missingDateTexts.length < 2) {
+    return;
+  }
+
+  const oldestMissingDateText = missingDateTexts[0] || "";
+  const targetLabel = formatDateTextForMissingOverlay(oldestMissingDateText);
+  const mountPoint = document.body || document.documentElement;
+
+  if (!mountPoint) {
+    return;
+  }
+
+  const oldOverlay = document.getElementById("kintai-helper-missing-overlay");
+  if (oldOverlay) {
+    oldOverlay.remove();
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "kintai-helper-missing-overlay";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.right = "0";
+  overlay.style.bottom = "0";
+  overlay.style.background = "rgba(0, 0, 0, 0.5)";
+  overlay.style.zIndex = "2147483647";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+
+  const dialog = document.createElement("div");
+  dialog.style.width = "320px";
+  dialog.style.maxWidth = "calc(100vw - 32px)";
+  dialog.style.background = "#ffffff";
+  dialog.style.borderRadius = "4px";
+  dialog.style.boxShadow = "0 8px 24px rgba(0, 0, 0, 0.2)";
+  dialog.style.overflow = "hidden";
+
+  const header = document.createElement("div");
+  header.className = "popUpTitle editTime cf";
+  header.style.background = "#34495e";
+  header.style.padding = "15px 0";
+  header.style.textAlign = "center";
+
+  const title = document.createElement("div");
+  title.className = "ttl";
+  title.textContent = "確認";
+  title.style.color = "#ffffff";
+  header.appendChild(title);
+
+  const body = document.createElement("div");
+  body.style.padding = "20px";
+  body.style.textAlign = "center";
+  body.style.whiteSpace = "pre-line";
+  body.style.lineHeight = "1.8";
+  body.textContent = `過去の勤怠に入力忘れがあります。入力してください。
+対象:${targetLabel}`;
+
+  const footer = document.createElement("div");
+  footer.style.padding = "0 20px 20px";
+  footer.style.display = "flex";
+  footer.style.justifyContent = "center";
+
+  const okButton = document.createElement("button");
+  okButton.textContent = "OK";
+  applyDefaultButtonStyle(okButton);
+  okButton.style.background = "#65d3e4";
+  okButton.style.color = "#ffffff";
+  okButton.style.border = "1px solid #65d3e4";
+  okButton.style.width = "auto";
+  okButton.addEventListener("click", () => {
+    overlay.remove();
+  });
+
+  footer.appendChild(okButton);
+  dialog.appendChild(header);
+  dialog.appendChild(body);
+  dialog.appendChild(footer);
+  overlay.appendChild(dialog);
+  mountPoint.appendChild(overlay);
+}
+
+// ★ いちばん古い未打刻が下から4番目になるようにスクロールするよ
+function scrollOldestMissingRow(box) {
+  const missingDateTexts = getMissingDateTexts();
+  const oldestMissingDateText = missingDateTexts[0] || "";
+
+  if (!oldestMissingDateText) {
+    return false;
+  }
+
+  const dateRows = Array.from(box.querySelectorAll("tbody tr[data-date]"));
+  if (dateRows.length === 0) {
+    return false;
+  }
+
+  const targetIndex = dateRows.findIndex((row) => {
+    return (row.dataset.date || "") === oldestMissingDateText;
+  });
+
+  if (targetIndex < 0) {
+    return false;
+  }
+
+  const bottomDateText = shiftDateText(oldestMissingDateText, 3);
+
+  let bottomRow = dateRows.find((row) => {
+    return (row.dataset.date || "") === bottomDateText;
+  });
+
+  if (!bottomRow) {
+    const fallbackIndex = Math.min(targetIndex + 3, dateRows.length - 1);
+    bottomRow = dateRows[fallbackIndex];
+  }
+
+  if (!bottomRow) {
+    return false;
+  }
+
+  bottomRow.scrollIntoView({
+    behavior: "auto",
+    block: "end",
+    inline: "nearest",
+  });
+
+  return true;
+}
 
 // ====== テーブル監視 ======
 function watchTableAndScroll() {
   const box = document.querySelector("div.table-scroll-box");
-  if (box) {
-    // ★ 表の上を画面のいちばん上に合わせるよ
-    box.scrollIntoView({
-      behavior: "auto",
-      block: "start",
-    });
-    const rows = box.querySelectorAll("tbody tr");
-    for (const row of rows) {
-      const statusCell = row.querySelector("td.status span");
-      const statusText = statusCell ? statusCell.textContent.trim() : "";
-      if (statusCell && statusText === "勤務予定") {
-        const cells = row.querySelectorAll("td");
-        cells.forEach((cell) => {
-          cell.style.backgroundColor = "lightyellow";
-        });
-        const prev = row.previousElementSibling;
-        if (prev) {
-          prev.scrollIntoView({
-            behavior: "auto",
-            block: "start",
-            inline: "nearest",
-          });
-        }
-        break;
-      }
-    }
+  if (!box) {
+    return false;
+  }
+
+  // ★ まずは、いちばん古い未打刻を基準にした位置へ移動してみるよ
+  if (scrollOldestMissingRow(box)) {
     return true;
   }
-  return false;
+
+  // ★ 未打刻がまだ無いときは、今までどおり勤務予定の近くへ移動するよ
+  box.scrollIntoView({
+    behavior: "auto",
+    block: "start",
+  });
+
+  const rows = box.querySelectorAll("tbody tr");
+
+  for (const row of rows) {
+    const statusCell = row.querySelector("td.status span");
+    const statusText = statusCell ? statusCell.textContent.trim() : "";
+    if (statusCell && statusText === "勤務予定") {
+      const prev = row.previousElementSibling;
+
+      if (prev) {
+        prev.scrollIntoView({
+          behavior: "auto",
+          block: "start",
+          inline: "nearest",
+        });
+      }
+      break;
+    }
+  }
+
+  return true;
 }
 
 // ====== ページ監視 ======
@@ -545,19 +1400,22 @@ window.addEventListener("load", () => {
 
 // ====== 500msごとに監視 ======
 setInterval(() => {
+  // ★ 月次レスポンスを使った表示上書きをくり返し反映するよ
+  applyScheduleMonthStatusOverrides();
+
   const cancelApplyBtn = document.querySelector(
-    "button.jsubmit-cancle-create-timecard"
+    "button.jsubmit-cancle-create-timecard",
   );
   const dateSpan = document.querySelector("div.floatLeft.jdate span");
 
   // シフトセレクト監視
   const shiftSel = document.getElementById(
-    "shift_template_collection_for_timecard_cf"
+    "shift_template_collection_for_timecard_cf",
   );
   if (shiftSel) {
     // ★ カスタムのえらびがあるか見るよ
     const hasCustomOption = Array.from(shiftSel.options).some((o) =>
-      o.value.startsWith("__ext_")
+      o.value.startsWith("__ext_"),
     );
     const user = getCurrentUserName();
     // ★ 保存したテンプレートをもう一度入れるおまじないだよ
@@ -567,7 +1425,7 @@ setInterval(() => {
         Object.keys(templates).forEach((name) => {
           if (
             !Array.from(shiftSel.options).some(
-              (o) => o.value === `__ext_${name}`
+              (o) => o.value === `__ext_${name}`,
             )
           ) {
             const opt = document.createElement("option");
@@ -580,7 +1438,7 @@ setInterval(() => {
           const saved = data[`savedShiftTemplate_${user}`];
           if (saved) {
             const submitBtn = document.querySelector(
-              "button.jsubmit-edit-timecard"
+              "button.jsubmit-edit-timecard",
             ); // ★ 「提出」ボタンがあるかさがすよ
             if (!submitBtn) {
               // ★ ボタンがないときは復元しないよ
@@ -595,7 +1453,7 @@ setInterval(() => {
               return; // ★ ここでおしまいだよ
             }
             let has = Array.from(shiftSel.options).some(
-              (o) => o.value === saved
+              (o) => o.value === saved,
             ); // ★ 同じ値があるか調べるよ
             if (!has && !saved.startsWith("__ext_")) {
               const opt = document.createElement("option"); // ★ 新しい選択肢を作るよ
@@ -623,7 +1481,7 @@ setInterval(() => {
         const user = getCurrentUserName();
         chrome.storage.local.set(
           { [`savedShiftTemplate_${user}`]: shiftSel.value },
-          () => {}
+          () => {},
         );
         if (shiftSel.value.startsWith("__ext_")) {
           const name = shiftSel.value.replace("__ext_", "");
@@ -682,25 +1540,25 @@ setInterval(() => {
             }
           }
           const workInputs = document.querySelectorAll(
-            '.timecards_hidden_data input[type="number"]'
+            '.timecards_hidden_data input[type="number"]',
           );
           obj.work.forEach((v, i) => {
             if (workInputs[i]) workInputs[i].value = v;
           });
           const breakInputs = document.querySelectorAll(
-            '.break-times-data input[type="number"]'
+            '.break-times-data input[type="number"]',
           );
           obj.break.forEach((v, i) => {
             if (breakInputs[i]) breakInputs[i].value = v;
           });
           if (obj.shiftHtml) {
             const selOrg = document.getElementById(
-              "shift_template_collection_for_timecard_cf"
+              "shift_template_collection_for_timecard_cf",
             );
             if (selOrg) selOrg.outerHTML = obj.shiftHtml;
           }
           const selNew = document.getElementById(
-            "shift_template_collection_for_timecard_cf"
+            "shift_template_collection_for_timecard_cf",
           );
           if (selNew) {
             selNew.disabled = false;
@@ -724,10 +1582,10 @@ setInterval(() => {
     tempSaveInitialized = true;
     function saveTempData(showAlert) {
       const workInputs = document.querySelectorAll(
-        '.timecards_hidden_data input[type="number"]'
+        '.timecards_hidden_data input[type="number"]',
       );
       const breakInputs = document.querySelectorAll(
-        '.break-times-data  input[type="number"]'
+        '.break-times-data  input[type="number"]',
       );
       const workValues = Array.from(workInputs).map((i) => i.value);
       const breakValues = Array.from(breakInputs).map((i) => i.value);
@@ -736,7 +1594,7 @@ setInterval(() => {
       const hourWork = document.querySelector(".hour-work");
       const hourWorkHtml = hourWork ? hourWork.outerHTML : "";
       const shiftSel = document.getElementById(
-        "shift_template_collection_for_timecard_cf"
+        "shift_template_collection_for_timecard_cf",
       );
       const shiftValue = shiftSel ? shiftSel.value : "";
       const shiftHtml = shiftSel ? shiftSel.outerHTML : "";
@@ -760,7 +1618,7 @@ setInterval(() => {
   // 勤怠UIの可視判定
   const textarea = document.getElementById("update_reason");
   const targetDiv = document.querySelector(
-    "div.rightContent.staff_time_cards_month"
+    "div.rightContent.staff_time_cards_month",
   );
   const isVisible = textarea && targetDiv && targetDiv.offsetParent !== null;
 
@@ -816,7 +1674,7 @@ setInterval(() => {
         textarea.value = titleText;
         restoreTempData();
         renderAll();
-      }
+      },
     );
 
     // DOM構築
@@ -1061,7 +1919,7 @@ setInterval(() => {
           selectedReasons = [...preSelectedReasons];
           renderAll();
           reasonWrapper.style.display = preReasonVisible ? "flex" : "none";
-        }
+        },
       );
     });
 
@@ -1096,11 +1954,36 @@ setInterval(() => {
       titleInput,
       workTypeWrapper,
       reasonWrapper,
-      actionGroup
+      actionGroup,
     );
     textarea.parentElement.appendChild(wrapper);
   }
 }, 500);
+
+
+// ===== body ができてから監視を始めるための共通関数だよ =====
+function observeDocumentBodyWhenReady(observer, options) {
+  if (document.body) {
+    observer.observe(document.body, options);
+    return;
+  }
+
+  const waitObserver = new MutationObserver(() => {
+    if (!document.body) {
+      return;
+    }
+
+    waitObserver.disconnect();
+    observer.observe(document.body, options);
+  });
+
+  if (document.documentElement) {
+    waitObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+  }
+}
 
 // ===== ラジオボタンの重なりを直すよ =====
 (function () {
@@ -1147,7 +2030,10 @@ setInterval(() => {
   });
 
   // ページ全体を見張って、新しいラジオボタンを見つけたら教えてもらうよ
-  observer.observe(document.body, { childList: true, subtree: true });
+  observeDocumentBodyWhenReady(observer, {
+    childList: true,
+    subtree: true,
+  });
 })();
 
 // ===== ラジオは「擬似要素の丸」を表示、文字と重ならないように整えるよ =====
@@ -1291,7 +2177,10 @@ setInterval(() => {
       }
     }
   });
-  mo.observe(document.body, { childList: true, subtree: true });
+  observeDocumentBodyWhenReady(mo, {
+    childList: true,
+    subtree: true,
+  });
 })();
 // ===== 元デザインの「✔」で表示し、重なりだけ直す 最小追記 =====
 // ★ 小学生でもわかるコメント付きだよ
